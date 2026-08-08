@@ -1,0 +1,2491 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>ANOAP Engineering Simulator</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+
+    margin: 0;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background: #0b1020;
+
+    color: #e8edf7;
+}
+
+header {
+
+    padding: 25px;
+
+    background: #11182d;
+
+    border-bottom:
+        1px solid #263252;
+}
+
+header h1 {
+
+    margin: 0;
+
+    font-size: 30px;
+}
+
+header p {
+
+    color: #9da9c7;
+}
+
+.container {
+
+    max-width: 1500px;
+
+    margin: auto;
+
+    padding: 20px;
+}
+
+.grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(320px, 1fr));
+
+    gap: 20px;
+}
+
+.card {
+
+    background: #121a31;
+
+    border:
+        1px solid #263252;
+
+    border-radius: 12px;
+
+    padding: 20px;
+
+    margin-bottom: 20px;
+}
+
+.card h2 {
+
+    margin-top: 0;
+
+    font-size: 20px;
+}
+
+label {
+
+    display: block;
+
+    margin-top: 12px;
+
+    color: #aeb9d1;
+}
+
+input {
+
+    width: 100%;
+
+    padding: 9px;
+
+    margin-top: 5px;
+
+    border-radius: 6px;
+
+    border: 1px solid #334267;
+
+    background: #0b1020;
+
+    color: white;
+}
+
+button {
+
+    padding: 11px 16px;
+
+    border: none;
+
+    border-radius: 7px;
+
+    cursor: pointer;
+
+    margin: 5px;
+
+    background: #263d70;
+
+    color: white;
+
+    font-weight: bold;
+}
+
+button:hover {
+
+    background: #35569a;
+}
+
+.metric {
+
+    background: #0c1327;
+
+    padding: 15px;
+
+    border-radius: 8px;
+
+    margin-top: 10px;
+}
+
+.metric strong {
+
+    display: block;
+
+    font-size: 23px;
+
+    margin-top: 5px;
+}
+
+canvas {
+
+    max-height: 400px;
+}
+
+table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+    margin-top: 15px;
+}
+
+th,
+td {
+
+    padding: 9px;
+
+    border-bottom:
+        1px solid #293553;
+
+    text-align: left;
+}
+
+.status {
+
+    padding: 12px;
+
+    border-radius: 8px;
+
+    background: #101a30;
+
+    margin-top: 10px;
+}
+
+footer {
+
+    text-align: center;
+
+    padding: 30px;
+
+    color: #6f7b99;
+}
+
+.small {
+
+    font-size: 13px;
+
+    color: #8995b0;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+<div class="container">
+
+<h1>🚀 ANOAP Engineering Simulator</h1>
+
+<p>
+Autonomous Ocean-Aerospace Platform —
+Interactive Multidomain Engineering Research Environment
+</p>
+
+</div>
+
+</header>
+
+
+<div class="container">
+
+
+<!-- ===================================================== -->
+<!-- VEHICLE PARAMETERS -->
+<!-- ===================================================== -->
+
+<div class="card">
+
+<h2>⚙️ Vehicle Parameters</h2>
+
+<div class="grid">
+
+
+<div>
+
+<label>
+Mass (kg)
+<input id="mass"
+       type="number"
+       value="25"
+       step="0.1">
+</label>
+
+<label>
+Vehicle Length (m)
+<input id="length"
+       type="number"
+       value="2"
+       step="0.1">
+</label>
+
+<label>
+Vehicle Width (m)
+<input id="width"
+       type="number"
+       value="0.8"
+       step="0.1">
+</label>
+
+<label>
+Vehicle Height (m)
+<input id="height"
+       type="number"
+       value="0.35"
+       step="0.05">
+</label>
+
+</div>
+
+
+<div>
+
+<label>
+Wing Area (m²)
+<input id="wingArea"
+       type="number"
+       value="1.5"
+       step="0.1">
+</label>
+
+<label>
+Air Drag Coefficient
+<input id="cdAir"
+       type="number"
+       value="0.08"
+       step="0.01">
+</label>
+
+<label>
+Surface Drag Coefficient
+<input id="cdSurface"
+       type="number"
+       value="0.06"
+       step="0.01">
+</label>
+
+<label>
+Underwater Drag Coefficient
+<input id="cdWater"
+       type="number"
+       value="0.35"
+       step="0.01">
+</label>
+
+</div>
+
+
+<div>
+
+<label>
+Air Frontal Area (m²)
+<input id="airArea"
+       type="number"
+       value="0.25"
+       step="0.01">
+</label>
+
+<label>
+Water Frontal Area (m²)
+<input id="waterArea"
+       type="number"
+       value="0.28"
+       step="0.01">
+</label>
+
+<label>
+Displacement Volume (m³)
+<input id="volume"
+       type="number"
+       value="0.20"
+       step="0.01">
+</label>
+
+<label>
+Battery Energy (kWh)
+<input id="battery"
+       type="number"
+       value="20"
+       step="1">
+</label>
+
+</div>
+
+</div>
+
+<button onclick="runSimulation()">
+▶ Run Simulation
+</button>
+
+<button onclick="resetVehicle()">
+↻ Reset
+</button>
+
+</div>
+
+
+
+<!-- ===================================================== -->
+<!-- BASIC VEHICLE STATUS -->
+<!-- ===================================================== -->
+
+<div class="grid">
+
+
+<div class="card">
+
+<h2>⚖️ Vehicle Physics</h2>
+
+<div class="metric">
+Weight
+<strong id="weight">—</strong>
+N
+</div>
+
+<div class="metric">
+Buoyancy
+<strong id="buoyancy">—</strong>
+N
+</div>
+
+<div class="metric">
+Displacement
+<strong id="displacement">—</strong>
+m³
+</div>
+
+<div class="status"
+     id="floatStatus">
+Waiting for simulation...
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h2>🔋 Energy System</h2>
+
+<div class="metric">
+
+Battery
+
+<strong id="batteryOutput">
+—
+</strong>
+
+kWh
+
+</div>
+
+<div class="metric">
+
+Usable Energy
+
+<strong id="usableEnergy">
+—
+</strong>
+
+kWh
+
+</div>
+
+<div class="metric">
+
+Conceptual Continuous Power
+
+<strong id="powerOutput">
+—
+</strong>
+
+kW
+
+</div>
+
+<p class="small">
+
+The energy model is a systems-level placeholder.
+It does not represent a nuclear reactor design.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h2>🧭 Mission Status</h2>
+
+<div class="metric">
+
+Mission Distance
+
+<strong id="missionDistance">
+—
+</strong>
+
+km
+
+</div>
+
+<div class="metric">
+
+Mission Energy
+
+<strong id="missionEnergy">
+—
+</strong>
+
+kWh
+
+</div>
+
+<div class="metric">
+
+Remaining Energy
+
+<strong id="remainingEnergy">
+—
+</strong>
+
+kWh
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- ===================================================== -->
+<!-- VELOCITY PARAMETERS -->
+<!-- ===================================================== -->
+
+<div class="card">
+
+<h2>🚀 Velocity Simulation</h2>
+
+<div class="grid">
+
+<div>
+
+<label>
+Minimum Velocity (m/s)
+
+<input id="minVelocity"
+       type="number"
+       value="1">
+
+</label>
+
+</div>
+
+<div>
+
+<label>
+Maximum Velocity (m/s)
+
+<input id="maxVelocity"
+       type="number"
+       value="50">
+
+</label>
+
+</div>
+
+<div>
+
+<label>
+Simulation Points
+
+<input id="points"
+       type="number"
+       value="100">
+
+</label>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- ===================================================== -->
+<!-- CHARTS -->
+<!-- ===================================================== -->
+
+<div class="card">
+
+<h2>⚡ Power vs Velocity</h2>
+
+<canvas id="powerChart"></canvas>
+
+</div>
+
+
+<div class="card">
+
+<h2>🌀 Drag vs Velocity</h2>
+
+<canvas id="dragChart"></canvas>
+
+</div>
+
+
+<div class="card">
+
+<h2>⏱️ Endurance vs Velocity</h2>
+
+<canvas id="enduranceChart"></canvas>
+
+</div>
+
+
+<div class="card">
+
+<h2>🌍 Theoretical Range vs Velocity</h2>
+
+<canvas id="rangeChart"></canvas>
+
+</div>
+
+
+
+<!-- ===================================================== -->
+<!-- OPERATING POINT -->
+<!-- ===================================================== -->
+
+<div class="card">
+
+<h2>🎯 Optimal Operating Points</h2>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Mode</th>
+
+<th>Velocity</th>
+
+<th>Power</th>
+
+<th>Endurance</th>
+
+<th>Range</th>
+
+</tr>
+
+</thead>
+
+<tbody id="optimalTable">
+
+</tbody>
+
+</table>
+
+</div>
+
+
+
+<!-- ===================================================== -->
+<!-- MISSION -->
+<!-- ===================================================== -->
+
+<div class="card">
+
+<h2>🛰️ ANOAP Mission Simulator</h2>
+
+<p>
+The vehicle performs a simplified multidomain mission:
+</p>
+
+<div class="grid">
+
+<div>
+
+<label>
+Flight Velocity (m/s)
+
+<input id="flightVelocity"
+       type="number"
+       value="20">
+
+</label>
+
+<label>
+Flight Time (hours)
+
+<input id="flightTime"
+       type="number"
+       value="1">
+
+</label>
+
+</div>
+
+
+<div>
+
+<label>
+Surface Velocity (m/s)
+
+<input id="surfaceVelocity"
+       type="number"
+       value="5">
+
+</label>
+
+<label>
+Surface Time (hours)
+
+<input id="surfaceTime"
+       type="number"
+       value="1">
+
+</label>
+
+</div>
+
+
+<div>
+
+<label>
+Underwater Velocity (m/s)
+
+<input id="underwaterVelocity"
+       type="number"
+       value="2">
+
+</label>
+
+<label>
+Underwater Time (hours)
+
+<input id="underwaterTime"
+       type="number"
+       value="2">
+
+</label>
+
+</div>
+
+
+<div>
+
+<label>
+Return Flight Time (hours)
+
+<input id="returnTime"
+       type="number"
+       value="1">
+
+</label>
+
+</div>
+
+</div>
+
+<button onclick="runMission()">
+
+🚀 Run Mission
+
+</button>
+
+<div id="missionReport"
+     class="status">
+
+Mission not started.
+
+</div>
+
+</div>
+
+
+
+<!-- ===================================================== -->
+<!-- EXPORT -->
+<!-- ===================================================== -->
+
+<div class="card">
+
+<h2>📊 Research Data</h2>
+
+<button onclick="downloadCSV()">
+
+Download CSV Dataset
+
+</button>
+
+<button onclick="downloadReport()">
+
+Download Engineering Report
+
+</button>
+
+<p class="small">
+
+Use the generated datasets in your engineering journal.
+Record assumptions, equations, failures and improvements.
+
+</p>
+
+</div>
+
+
+
+</div>
+
+
+<footer>
+
+ANOAP Independent Engineering Research Project<br>
+
+Aerospace • Marine • Energy • Autonomous Systems
+
+</footer>
+
+
+
+<script>
+
+
+// ============================================================
+// CONSTANTS
+// ============================================================
+
+const G = 9.80665;
+
+const AIR_DENSITY = 1.225;
+
+const WATER_DENSITY = 1025;
+
+
+// ============================================================
+// CHART STORAGE
+// ============================================================
+
+let powerChart;
+let dragChart;
+let enduranceChart;
+let rangeChart;
+
+let simulationData = [];
+
+
+// ============================================================
+// GET VEHICLE PARAMETERS
+// ============================================================
+
+function getVehicle() {
+
+    return {
+
+        mass:
+            Number(
+                document.getElementById("mass").value
+            ),
+
+        length:
+            Number(
+                document.getElementById("length").value
+            ),
+
+        width:
+            Number(
+                document.getElementById("width").value
+            ),
+
+        height:
+            Number(
+                document.getElementById("height").value
+            ),
+
+        wingArea:
+            Number(
+                document.getElementById("wingArea").value
+            ),
+
+        cdAir:
+            Number(
+                document.getElementById("cdAir").value
+            ),
+
+        cdSurface:
+            Number(
+                document.getElementById("cdSurface").value
+            ),
+
+        cdWater:
+            Number(
+                document.getElementById("cdWater").value
+            ),
+
+        airArea:
+            Number(
+                document.getElementById("airArea").value
+            ),
+
+        waterArea:
+            Number(
+                document.getElementById("waterArea").value
+            ),
+
+        volume:
+            Number(
+                document.getElementById("volume").value
+            ),
+
+        battery:
+            Number(
+                document.getElementById("battery").value
+            )
+
+    };
+
+}
+
+
+// ============================================================
+// BASIC PHYSICS
+// ============================================================
+
+function weight(vehicle) {
+
+    return vehicle.mass * G;
+
+}
+
+
+function buoyancy(vehicle) {
+
+    return (
+        WATER_DENSITY *
+        G *
+        vehicle.volume
+    );
+
+}
+
+
+function drag(
+    density,
+    velocity,
+    cd,
+    area
+) {
+
+    return (
+        0.5 *
+        density *
+        velocity *
+        velocity *
+        cd *
+        area
+    );
+
+}
+
+
+// ============================================================
+// FLIGHT MODEL
+// ============================================================
+
+function flightModel(
+    vehicle,
+    velocity
+) {
+
+    if (velocity <= 0) {
+
+        return {
+
+            power: 0,
+            drag: 0,
+            lift: 0,
+            cl: Infinity,
+            endurance: 0,
+            range: 0
+
+        };
+
+    }
+
+
+    const W =
+        weight(vehicle);
+
+
+    const denominator =
+        0.5 *
+        AIR_DENSITY *
+        velocity *
+        velocity *
+        vehicle.wingArea;
+
+
+    const cl =
+        W / denominator;
+
+
+    const lift =
+        0.5 *
+        AIR_DENSITY *
+        velocity *
+        velocity *
+        vehicle.wingArea *
+        cl;
+
+
+    const D =
+        drag(
+            AIR_DENSITY,
+            velocity,
+            vehicle.cdAir,
+            vehicle.airArea
+        );
+
+
+    const mechanicalPower =
+        D * velocity;
+
+
+    const efficiency = 0.65;
+
+
+    const electricalPower =
+        mechanicalPower /
+        efficiency /
+        1000;
+
+
+    const totalPower =
+        electricalPower +
+        0.15;
+
+
+    const usableEnergy =
+        vehicle.battery * 0.9;
+
+
+    const endurance =
+        usableEnergy /
+        totalPower;
+
+
+    const range =
+        velocity *
+        3.6 *
+        endurance;
+
+
+    return {
+
+        power: totalPower,
+
+        drag: D,
+
+        lift: lift,
+
+        cl: cl,
+
+        endurance: endurance,
+
+        range: range
+
+    };
+
+}
+
+
+// ============================================================
+// SURFACE MODEL
+// ============================================================
+
+function surfaceModel(
+    vehicle,
+    velocity
+) {
+
+    const D =
+        drag(
+            WATER_DENSITY,
+            velocity,
+            vehicle.cdSurface,
+            vehicle.waterArea
+        );
+
+
+    const mechanicalPower =
+        D * velocity;
+
+
+    const electricalPower =
+        mechanicalPower /
+        0.55 /
+        1000;
+
+
+    const totalPower =
+        electricalPower +
+        0.15;
+
+
+    const usableEnergy =
+        vehicle.battery * 0.9;
+
+
+    const endurance =
+        usableEnergy /
+        totalPower;
+
+
+    const range =
+        velocity *
+        3.6 *
+        endurance;
+
+
+    return {
+
+        power: totalPower,
+
+        drag: D,
+
+        endurance: endurance,
+
+        range: range
+
+    };
+
+}
+
+
+// ============================================================
+// UNDERWATER MODEL
+// ============================================================
+
+function underwaterModel(
+    vehicle,
+    velocity
+) {
+
+    const D =
+        drag(
+            WATER_DENSITY,
+            velocity,
+            vehicle.cdWater,
+            vehicle.waterArea
+        );
+
+
+    const mechanicalPower =
+        D * velocity;
+
+
+    const electricalPower =
+        mechanicalPower /
+        0.50 /
+        1000;
+
+
+    const totalPower =
+        electricalPower +
+        0.15;
+
+
+    const usableEnergy =
+        vehicle.battery * 0.9;
+
+
+    const endurance =
+        usableEnergy /
+        totalPower;
+
+
+    const range =
+        velocity *
+        3.6 *
+        endurance;
+
+
+    return {
+
+        power: totalPower,
+
+        drag: D,
+
+        endurance: endurance,
+
+        range: range
+
+    };
+
+}
+
+
+// ============================================================
+// MAIN SIMULATION
+// ============================================================
+
+function runSimulation() {
+
+
+    const vehicle =
+        getVehicle();
+
+
+    const minVelocity =
+        Number(
+            document.getElementById(
+                "minVelocity"
+            ).value
+        );
+
+
+    const maxVelocity =
+        Number(
+            document.getElementById(
+                "maxVelocity"
+            ).value
+        );
+
+
+    const points =
+        Number(
+            document.getElementById(
+                "points"
+            ).value
+        );
+
+
+    const W =
+        weight(vehicle);
+
+
+    const B =
+        buoyancy(vehicle);
+
+
+    document.getElementById(
+        "weight"
+    ).textContent =
+        W.toFixed(2);
+
+
+    document.getElementById(
+        "buoyancy"
+    ).textContent =
+        B.toFixed(2);
+
+
+    document.getElementById(
+        "displacement"
+    ).textContent =
+        vehicle.volume.toFixed(3);
+
+
+    document.getElementById(
+        "batteryOutput"
+    ).textContent =
+        vehicle.battery.toFixed(2);
+
+
+    document.getElementById(
+        "usableEnergy"
+    ).textContent =
+        (
+            vehicle.battery * 0.9
+        ).toFixed(2);
+
+
+    if (B > W) {
+
+        document.getElementById(
+            "floatStatus"
+        ).textContent =
+            "✓ POSITIVE BUOYANCY — vehicle tends to float.";
+
+    }
+
+    else if (B < W) {
+
+        document.getElementById(
+            "floatStatus"
+        ).textContent =
+            "⚠ NEGATIVE BUOYANCY — vehicle tends to sink.";
+
+    }
+
+    else {
+
+        document.getElementById(
+            "floatStatus"
+        ).textContent =
+            "⚖ NEUTRAL BUOYANCY.";
+
+    }
+
+
+    simulationData = [];
+
+
+    let velocities = [];
+
+    let flightPower = [];
+    let surfacePower = [];
+    let underwaterPower = [];
+
+    let flightDrag = [];
+    let surfaceDrag = [];
+    let underwaterDrag = [];
+
+    let flightEndurance = [];
+    let surfaceEndurance = [];
+    let underwaterEndurance = [];
+
+    let flightRange = [];
+    let surfaceRange = [];
+    let underwaterRange = [];
+
+
+    for (
+        let i = 0;
+        i < points;
+        i++
+    ) {
+
+        const v =
+            minVelocity +
+            (
+                maxVelocity -
+                minVelocity
+            ) *
+            (
+                i /
+                (points - 1)
+            );
+
+
+        const flight =
+            flightModel(
+                vehicle,
+                v
+            );
+
+
+        const surface =
+            surfaceModel(
+                vehicle,
+                v
+            );
+
+
+        const underwater =
+            underwaterModel(
+                vehicle,
+                v
+            );
+
+
+        velocities.push(v);
+
+
+        flightPower.push(
+            flight.power
+        );
+
+        surfacePower.push(
+            surface.power
+        );
+
+        underwaterPower.push(
+            underwater.power
+        );
+
+
+        flightDrag.push(
+            flight.drag
+        );
+
+        surfaceDrag.push(
+            surface.drag
+        );
+
+        underwaterDrag.push(
+            underwater.drag
+        );
+
+
+        flightEndurance.push(
+            flight.endurance
+        );
+
+        surfaceEndurance.push(
+            surface.endurance
+        );
+
+        underwaterEndurance.push(
+            underwater.endurance
+        );
+
+
+        flightRange.push(
+            flight.range
+        );
+
+        surfaceRange.push(
+            surface.range
+        );
+
+        underwaterRange.push(
+            underwater.range
+        );
+
+
+        simulationData.push({
+
+            velocity: v,
+
+            flightPower:
+                flight.power,
+
+            surfacePower:
+                surface.power,
+
+            underwaterPower:
+                underwater.power,
+
+            flightDrag:
+                flight.drag,
+
+            surfaceDrag:
+                surface.drag,
+
+            underwaterDrag:
+                underwater.drag,
+
+            flightEndurance:
+                flight.endurance,
+
+            surfaceEndurance:
+                surface.endurance,
+
+            underwaterEndurance:
+                underwater.endurance,
+
+            flightRange:
+                flight.range,
+
+            surfaceRange:
+                surface.range,
+
+            underwaterRange:
+                underwater.range
+
+        });
+
+    }
+
+
+    createCharts(
+        velocities,
+        flightPower,
+        surfacePower,
+        underwaterPower,
+        flightDrag,
+        surfaceDrag,
+        underwaterDrag,
+        flightEndurance,
+        surfaceEndurance,
+        underwaterEndurance,
+        flightRange,
+        surfaceRange,
+        underwaterRange
+    );
+
+
+    updateOptimalTable();
+
+}
+
+
+// ============================================================
+// CHART CREATION
+// ============================================================
+
+function createCharts(
+
+    velocities,
+
+    flightPower,
+    surfacePower,
+    underwaterPower,
+
+    flightDrag,
+    surfaceDrag,
+    underwaterDrag,
+
+    flightEndurance,
+    surfaceEndurance,
+    underwaterEndurance,
+
+    flightRange,
+    surfaceRange,
+    underwaterRange
+
+) {
+
+
+    if (powerChart)
+        powerChart.destroy();
+
+    if (dragChart)
+        dragChart.destroy();
+
+    if (enduranceChart)
+        enduranceChart.destroy();
+
+    if (rangeChart)
+        rangeChart.destroy();
+
+
+    powerChart =
+        new Chart(
+            document.getElementById(
+                "powerChart"
+            ),
+            {
+
+                type: "line",
+
+                data: {
+
+                    labels:
+                        velocities,
+
+                    datasets: [
+
+                        {
+                            label: "Flight",
+                            data: flightPower,
+                            borderWidth: 2
+                        },
+
+                        {
+                            label: "Surface",
+                            data: surfacePower,
+                            borderWidth: 2
+                        },
+
+                        {
+                            label: "Underwater",
+                            data: underwaterPower,
+                            borderWidth: 2
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true,
+
+                    scales: {
+
+                        x: {
+                            title: {
+                                display: true,
+                                text: "Velocity (m/s)"
+                            }
+                        },
+
+                        y: {
+                            title: {
+                                display: true,
+                                text: "Power (kW)"
+                            }
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+
+    dragChart =
+        new Chart(
+            document.getElementById(
+                "dragChart"
+            ),
+            {
+
+                type: "line",
+
+                data: {
+
+                    labels:
+                        velocities,
+
+                    datasets: [
+
+                        {
+                            label: "Flight",
+                            data: flightDrag,
+                            borderWidth: 2
+                        },
+
+                        {
+                            label: "Surface",
+                            data: surfaceDrag,
+                            borderWidth: 2
+                        },
+
+                        {
+                            label: "Underwater",
+                            data: underwaterDrag,
+                            borderWidth: 2
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true
+
+                }
+
+            }
+        );
+
+
+    enduranceChart =
+        new Chart(
+            document.getElementById(
+                "enduranceChart"
+            ),
+            {
+
+                type: "line",
+
+                data: {
+
+                    labels:
+                        velocities,
+
+                    datasets: [
+
+                        {
+                            label: "Flight",
+                            data: flightEndurance,
+                            borderWidth: 2
+                        },
+
+                        {
+                            label: "Surface",
+                            data: surfaceEndurance,
+                            borderWidth: 2
+                        },
+
+                        {
+                            label: "Underwater",
+                            data: underwaterEndurance,
+                            borderWidth: 2
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true
+
+                }
+
+            }
+        );
+
+
+    rangeChart =
+        new Chart(
+            document.getElementById(
+                "rangeChart"
+            ),
+            {
+
+                type: "line",
+
+                data: {
+
+                    labels:
+                        velocities,
+
+                    datasets: [
+
+                        {
+                            label: "Flight",
+                            data: flightRange,
+                            borderWidth: 2
+                        },
+
+                        {
+                            label: "Surface",
+                            data: surfaceRange,
+                            borderWidth: 2
+                        },
+
+                        {
+                            label: "Underwater",
+                            data: underwaterRange,
+                            borderWidth: 2
+                        }
+
+                    ]
+
+                },
+
+                options: {
+
+                    responsive: true
+
+                }
+
+            }
+        );
+
+}
+
+
+// ============================================================
+// FIND OPTIMAL POINT
+// ============================================================
+
+function minimum(
+    array,
+    property
+) {
+
+    return array.reduce(
+
+        (best, current) => {
+
+            if (
+                current[property] <
+                best[property]
+            ) {
+
+                return current;
+
+            }
+
+            return best;
+
+        }
+
+    );
+
+}
+
+
+// ============================================================
+// UPDATE TABLE
+// ============================================================
+
+function updateOptimalTable() {
+
+
+    if (
+        simulationData.length === 0
+    ) {
+
+        return;
+
+    }
+
+
+    const flight =
+        simulationData.map(
+            x => ({
+
+                velocity: x.velocity,
+                power: x.flightPower,
+                endurance: x.flightEndurance,
+                range: x.flightRange
+
+            })
+        );
+
+
+    const surface =
+        simulationData.map(
+            x => ({
+
+                velocity: x.velocity,
+                power: x.surfacePower,
+                endurance: x.surfaceEndurance,
+                range: x.surfaceRange
+
+            })
+        );
+
+
+    const underwater =
+        simulationData.map(
+            x => ({
+
+                velocity: x.velocity,
+                power: x.underwaterPower,
+                endurance: x.underwaterEndurance,
+                range: x.underwaterRange
+
+            })
+        );
+
+
+    const bestFlight =
+        minimum(
+            flight,
+            "power"
+        );
+
+
+    const bestSurface =
+        minimum(
+            surface,
+            "power"
+        );
+
+
+    const bestUnderwater =
+        minimum(
+            underwater,
+            "power"
+        );
+
+
+    const table =
+        document.getElementById(
+            "optimalTable"
+        );
+
+
+    table.innerHTML = "";
+
+
+    addRow(
+        table,
+        "Flight",
+        bestFlight
+    );
+
+
+    addRow(
+        table,
+        "Surface",
+        bestSurface
+    );
+
+
+    addRow(
+        table,
+        "Underwater",
+        bestUnderwater
+    );
+
+}
+
+
+function addRow(
+    table,
+    name,
+    data
+) {
+
+    const row =
+        table.insertRow();
+
+
+    row.innerHTML = `
+
+        <td>${name}</td>
+
+        <td>
+            ${data.velocity.toFixed(2)}
+            m/s
+        </td>
+
+        <td>
+            ${data.power.toFixed(3)}
+            kW
+        </td>
+
+        <td>
+            ${data.endurance.toFixed(2)}
+            h
+        </td>
+
+        <td>
+            ${data.range.toFixed(2)}
+            km
+        </td>
+
+    `;
+
+}
+
+
+// ============================================================
+// MISSION SIMULATION
+// ============================================================
+
+function runMission() {
+
+
+    const vehicle =
+        getVehicle();
+
+
+    let remaining =
+        vehicle.battery * 0.9;
+
+
+    let totalDistance = 0;
+
+    let totalEnergy = 0;
+
+
+    const segments = [
+
+        {
+
+            name:
+                "Initial Flight",
+
+            mode:
+                "flight",
+
+            velocity:
+                Number(
+                    document.getElementById(
+                        "flightVelocity"
+                    ).value
+                ),
+
+            time:
+                Number(
+                    document.getElementById(
+                        "flightTime"
+                    ).value
+                )
+
+        },
+
+
+        {
+
+            name:
+                "Ocean Surface",
+
+            mode:
+                "surface",
+
+            velocity:
+                Number(
+                    document.getElementById(
+                        "surfaceVelocity"
+                    ).value
+                ),
+
+            time:
+                Number(
+                    document.getElementById(
+                        "surfaceTime"
+                    ).value
+                )
+
+        },
+
+
+        {
+
+            name:
+                "Underwater Survey",
+
+            mode:
+                "underwater",
+
+            velocity:
+                Number(
+                    document.getElementById(
+                        "underwaterVelocity"
+                    ).value
+                ),
+
+            time:
+                Number(
+                    document.getElementById(
+                        "underwaterTime"
+                    ).value
+                )
+
+        },
+
+
+        {
+
+            name:
+                "Return Flight",
+
+            mode:
+                "flight",
+
+            velocity:
+                Number(
+                    document.getElementById(
+                        "flightVelocity"
+                    ).value
+                ),
+
+            time:
+                Number(
+                    document.getElementById(
+                        "returnTime"
+                    ).value
+                )
+
+        }
+
+    ];
+
+
+    let report = "";
+
+
+    for (
+        const segment of segments
+    ) {
+
+
+        let result;
+
+
+        if (
+            segment.mode ===
+            "flight"
+        ) {
+
+            result =
+                flightModel(
+                    vehicle,
+                    segment.velocity
+                );
+
+        }
+
+        else if (
+            segment.mode ===
+            "surface"
+        ) {
+
+            result =
+                surfaceModel(
+                    vehicle,
+                    segment.velocity
+                );
+
+        }
+
+        else {
+
+            result =
+                underwaterModel(
+                    vehicle,
+                    segment.velocity
+                );
+
+        }
+
+
+        const energy =
+            result.power *
+            segment.time;
+
+
+        const distance =
+            segment.velocity *
+            3.6 *
+            segment.time;
+
+
+        remaining -= energy;
+
+        totalEnergy += energy;
+
+        totalDistance += distance;
+
+
+        report += `
+
+            <p>
+
+            <strong>
+            ${segment.name}
+            </strong>
+
+            <br>
+
+            Power:
+            ${result.power.toFixed(3)}
+            kW
+
+            <br>
+
+            Energy:
+            ${energy.toFixed(3)}
+            kWh
+
+            <br>
+
+            Distance:
+            ${distance.toFixed(2)}
+            km
+
+            <br>
+
+            Remaining:
+            ${remaining.toFixed(3)}
+            kWh
+
+            </p>
+
+        `;
+
+    }
+
+
+    document.getElementById(
+        "missionDistance"
+    ).textContent =
+        totalDistance.toFixed(2);
+
+
+    document.getElementById(
+        "missionEnergy"
+    ).textContent =
+        totalEnergy.toFixed(2);
+
+
+    document.getElementById(
+        "remainingEnergy"
+    ).textContent =
+        remaining.toFixed(2);
+
+
+    document.getElementById(
+        "missionReport"
+    ).innerHTML = `
+
+        ${report}
+
+        <hr>
+
+        <strong>
+        Total Distance:
+        ${totalDistance.toFixed(2)}
+        km
+        </strong>
+
+        <br>
+
+        <strong>
+        Total Energy:
+        ${totalEnergy.toFixed(2)}
+        kWh
+        </strong>
+
+        <br>
+
+        <strong>
+        Remaining Energy:
+        ${remaining.toFixed(2)}
+        kWh
+        </strong>
+
+    `;
+
+}
+
+
+// ============================================================
+// CSV EXPORT
+// ============================================================
+
+function downloadCSV() {
+
+
+    if (
+        simulationData.length === 0
+    ) {
+
+        alert(
+            "Run the simulation first."
+        );
+
+        return;
+
+    }
+
+
+    const headers = [
+
+        "Velocity",
+
+        "Flight Power",
+
+        "Surface Power",
+
+        "Underwater Power",
+
+        "Flight Drag",
+
+        "Surface Drag",
+
+        "Underwater Drag",
+
+        "Flight Endurance",
+
+        "Surface Endurance",
+
+        "Underwater Endurance",
+
+        "Flight Range",
+
+        "Surface Range",
+
+        "Underwater Range"
+
+    ];
+
+
+    let csv =
+        headers.join(",") +
+        "\n";
+
+
+    simulationData.forEach(
+        row => {
+
+            csv += [
+
+                row.velocity,
+
+                row.flightPower,
+
+                row.surfacePower,
+
+                row.underwaterPower,
+
+                row.flightDrag,
+
+                row.surfaceDrag,
+
+                row.underwaterDrag,
+
+                row.flightEndurance,
+
+                row.surfaceEndurance,
+
+                row.underwaterEndurance,
+
+                row.flightRange,
+
+                row.surfaceRange,
+
+                row.underwaterRange
+
+            ].join(",") +
+            "\n";
+
+        }
+    );
+
+
+    const blob =
+        new Blob(
+            [csv],
+            {
+                type:
+                    "text/csv"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+
+    const a =
+        document.createElement(
+            "a"
+        );
+
+
+    a.href = url;
+
+    a.download =
+        "ANOAP_simulation.csv";
+
+    a.click();
+
+
+    URL.revokeObjectURL(
+        url
+    );
+
+}
+
+
+// ============================================================
+// ENGINEERING REPORT
+// ============================================================
+
+function downloadReport() {
+
+
+    const vehicle =
+        getVehicle();
+
+
+    const report = `
+
+ANOAP ENGINEERING SIMULATION REPORT
+====================================
+
+AUTONOMOUS OCEAN-AEROSPACE PLATFORM
+
+
+VEHICLE PARAMETERS
+------------------
+
+Mass:
+${vehicle.mass} kg
+
+Length:
+${vehicle.length} m
+
+Width:
+${vehicle.width} m
+
+Height:
+${vehicle.height} m
+
+Wing Area:
+${vehicle.wingArea} m²
+
+Air Drag Coefficient:
+${vehicle.cdAir}
+
+Surface Drag Coefficient:
+${vehicle.cdSurface}
+
+Underwater Drag Coefficient:
+${vehicle.cdWater}
+
+Displacement:
+${vehicle.volume} m³
+
+Battery:
+${vehicle.battery} kWh
+
+
+PHYSICAL CONSTANTS
+------------------
+
+Air Density:
+${AIR_DENSITY} kg/m³
+
+Seawater Density:
+${WATER_DENSITY} kg/m³
+
+Gravity:
+${G} m/s²
+
+
+BASIC RESULTS
+-------------
+
+Weight:
+${weight(vehicle).toFixed(3)} N
+
+Buoyancy:
+${buoyancy(vehicle).toFixed(3)} N
+
+
+MODEL EQUATIONS
+---------------
+
+Weight:
+
+W = m × g
+
+
+Buoyancy:
+
+Fb = rho × g × V
+
+
+Drag:
+
+D = 0.5 × rho × V² × Cd × A
+
+
+Lift:
+
+L = 0.5 × rho × V² × S × Cl
+
+
+Mechanical Power:
+
+P = D × V
+
+
+Electrical Power:
+
+P_electric =
+P_mechanical / efficiency
+
+
+END
+`;
+
+
+    const blob =
+        new Blob(
+            [report],
+            {
+                type:
+                    "text/plain"
+            }
+        );
+
+
+    const url =
+        URL.createObjectURL(
+            blob
+        );
+
+
+    const a =
+        document.createElement(
+            "a"
+        );
+
+
+    a.href = url;
+
+    a.download =
+        "ANOAP_engineering_report.txt";
+
+    a.click();
+
+
+    URL.revokeObjectURL(
+        url
+    );
+
+}
+
+
+// ============================================================
+// RESET
+// ============================================================
+
+function resetVehicle() {
+
+    location.reload();
+
+}
+
+
+// ============================================================
+// INITIAL RUN
+// ============================================================
+
+window.onload =
+    function () {
+
+        runSimulation();
+
+    };
+
+
+</script>
+
+</body>
+
+</html>
