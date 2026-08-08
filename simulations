@@ -1,0 +1,1198 @@
+"""
+ANOAP — Autonomous Ocean-Aerospace Platform
+Version 1.0 — Educational Engineering Simulator
+
+This model is intentionally simplified.
+It is designed to help investigate the physics of a hypothetical
+multi-domain vehicle operating in:
+
+    1. AIR
+    2. OCEAN SURFACE
+    3. UNDERWATER
+
+The model does NOT simulate a nuclear reactor.
+
+Main outputs:
+    - Lift
+    - Drag
+    - Buoyancy
+    - Required thrust
+    - Electrical power
+    - Endurance
+    - Range
+    - Energy consumption
+    - Vehicle performance graphs
+
+Author: Independent Research Project
+"""
+
+# ============================================================
+# IMPORTS
+# ============================================================
+
+import math
+import csv
+from dataclasses import dataclass
+from pathlib import Path
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+# ============================================================
+# CONSTANTS
+# ============================================================
+
+G = 9.80665                 # gravitational acceleration, m/s²
+RHO_AIR = 1.225             # sea-level air density, kg/m³
+RHO_WATER = 1025.0          # seawater density, kg/m³
+
+
+# ============================================================
+# VEHICLE PARAMETERS
+# ============================================================
+
+@dataclass
+class Vehicle:
+    # Mass
+    mass_kg: float = 25.0
+
+    # Geometry
+    length_m: float = 2.0
+    width_m: float = 0.8
+    height_m: float = 0.35
+
+    # Wing
+    wing_area_m2: float = 1.5
+
+    # Aerodynamics
+    cd_air: float = 0.08
+    cl_max: float = 1.2
+
+    # Surface / underwater hydrodynamics
+    cd_surface: float = 0.06
+    cd_underwater: float = 0.35
+
+    # Frontal areas
+    frontal_area_air_m2: float = 0.25
+    frontal_area_water_m2: float = 0.28
+
+    # Propulsion efficiencies
+    propulsive_efficiency_air: float = 0.65
+    propulsive_efficiency_surface: float = 0.55
+    propulsive_efficiency_underwater: float = 0.50
+
+    # Electrical system
+    battery_energy_kwh: float = 20.0
+
+    # Battery usable fraction
+    battery_usable_fraction: float = 0.90
+
+    # Hotel / electronics load
+    hotel_power_kw: float = 0.15
+
+    # Vehicle volume
+    displacement_volume_m3: float = 0.20
+
+
+# ============================================================
+# ENVIRONMENT
+# ============================================================
+
+@dataclass
+class Environment:
+    air_density: float = RHO_AIR
+    water_density: float = RHO_WATER
+    gravity: float = G
+
+
+# ============================================================
+# BASIC PHYSICS
+# ============================================================
+
+def vehicle_weight(vehicle: Vehicle, env: Environment) -> float:
+    """
+    Weight of vehicle in Newtons.
+    """
+    return vehicle.mass_kg * env.gravity
+
+
+def buoyancy_force(vehicle: Vehicle, env: Environment) -> float:
+    """
+    Archimedes' principle:
+
+        Fb = rho * g * V
+
+    Returns buoyancy in Newtons.
+    """
+    return (
+        env.water_density
+        * env.gravity
+        * vehicle.displacement_volume_m3
+    )
+
+
+def aerodynamic_drag(
+    vehicle: Vehicle,
+    velocity_mps: float,
+    air_density: float
+) -> float:
+    """
+    Aerodynamic drag:
+
+        D = 0.5 * rho * V² * Cd * A
+    """
+
+    return (
+        0.5
+        * air_density
+        * velocity_mps ** 2
+        * vehicle.cd_air
+        * vehicle.frontal_area_air_m2
+    )
+
+
+def hydrodynamic_drag(
+    vehicle: Vehicle,
+    velocity_mps: float,
+    water_density: float,
+    cd: float = None
+) -> float:
+    """
+    Hydrodynamic drag:
+
+        D = 0.5 * rho * V² * Cd * A
+    """
+
+    if cd is None:
+        cd = vehicle.cd_underwater
+
+    return (
+        0.5
+        * water_density
+        * velocity_mps ** 2
+        * cd
+        * vehicle.frontal_area_water_m2
+    )
+
+
+def lift_force(
+    vehicle: Vehicle,
+    velocity_mps: float,
+    air_density: float,
+    cl: float
+) -> float:
+    """
+    Lift:
+
+        L = 0.5 * rho * V² * S * Cl
+    """
+
+    return (
+        0.5
+        * air_density
+        * velocity_mps ** 2
+        * vehicle.wing_area_m2
+        * cl
+    )
+
+
+# ============================================================
+# FLIGHT MODEL
+# ============================================================
+
+def required_lift_coefficient(
+    vehicle: Vehicle,
+    velocity_mps: float,
+    env: Environment
+) -> float:
+    """
+    Calculates the lift coefficient required for level flight.
+
+        L = W
+
+    Therefore:
+
+        Cl = W / (0.5 * rho * V² * S)
+    """
+
+    if velocity_mps <= 0:
+        return float("inf")
+
+    weight = vehicle_weight(vehicle, env)
+
+    denominator = (
+        0.5
+        * env.air_density
+        * velocity_mps ** 2
+        * vehicle.wing_area_m2
+    )
+
+    return weight / denominator
+
+
+def flight_performance(
+    vehicle: Vehicle,
+    velocity_mps: float,
+    env: Environment
+) -> dict:
+
+    if velocity_mps <= 0:
+        return {
+            "velocity": 0,
+            "lift": 0,
+            "drag": 0,
+            "cl": float("inf"),
+            "thrust": 0,
+            "mechanical_power": 0,
+            "electrical_power": vehicle.hotel_power_kw
+        }
+
+    weight = vehicle_weight(vehicle, env)
+
+    cl = required_lift_coefficient(
+        vehicle,
+        velocity_mps,
+        env
+    )
+
+    lift = lift_force(
+        vehicle,
+        velocity_mps,
+        env.air_density,
+        cl
+    )
+
+    drag = aerodynamic_drag(
+        vehicle,
+        velocity_mps,
+        env.air_density
+    )
+
+    # Required thrust approximately equals drag
+    thrust = drag
+
+    mechanical_power_w = thrust * velocity_mps
+
+    electrical_power_w = (
+        mechanical_power_w
+        / vehicle.propulsive_efficiency_air
+    )
+
+    total_power_kw = (
+        electrical_power_w / 1000
+        + vehicle.hotel_power_kw
+    )
+
+    return {
+        "velocity": velocity_mps,
+        "weight": weight,
+        "lift": lift,
+        "drag": drag,
+        "cl": cl,
+        "thrust": thrust,
+        "mechanical_power": mechanical_power_w / 1000,
+        "electrical_power": total_power_kw
+    }
+
+
+# ============================================================
+# SURFACE MODEL
+# ============================================================
+
+def surface_performance(
+    vehicle: Vehicle,
+    velocity_mps: float,
+    env: Environment
+) -> dict:
+
+    if velocity_mps <= 0:
+        return {
+            "velocity": 0,
+            "buoyancy": buoyancy_force(vehicle, env),
+            "drag": 0,
+            "thrust": 0,
+            "mechanical_power": 0,
+            "electrical_power": vehicle.hotel_power_kw
+        }
+
+    buoyancy = buoyancy_force(vehicle, env)
+
+    drag = hydrodynamic_drag(
+        vehicle,
+        velocity_mps,
+        env.water_density,
+        vehicle.cd_surface
+    )
+
+    thrust = drag
+
+    mechanical_power_w = thrust * velocity_mps
+
+    electrical_power_w = (
+        mechanical_power_w
+        / vehicle.propulsive_efficiency_surface
+    )
+
+    total_power_kw = (
+        electrical_power_w / 1000
+        + vehicle.hotel_power_kw
+    )
+
+    return {
+        "velocity": velocity_mps,
+        "buoyancy": buoyancy,
+        "drag": drag,
+        "thrust": thrust,
+        "mechanical_power": mechanical_power_w / 1000,
+        "electrical_power": total_power_kw
+    }
+
+
+# ============================================================
+# UNDERWATER MODEL
+# ============================================================
+
+def underwater_performance(
+    vehicle: Vehicle,
+    velocity_mps: float,
+    env: Environment
+) -> dict:
+
+    if velocity_mps <= 0:
+        return {
+            "velocity": 0,
+            "buoyancy": buoyancy_force(vehicle, env),
+            "drag": 0,
+            "thrust": 0,
+            "mechanical_power": 0,
+            "electrical_power": vehicle.hotel_power_kw
+        }
+
+    buoyancy = buoyancy_force(vehicle, env)
+
+    drag = hydrodynamic_drag(
+        vehicle,
+        velocity_mps,
+        env.water_density,
+        vehicle.cd_underwater
+    )
+
+    thrust = drag
+
+    mechanical_power_w = thrust * velocity_mps
+
+    electrical_power_w = (
+        mechanical_power_w
+        / vehicle.propulsive_efficiency_underwater
+    )
+
+    total_power_kw = (
+        electrical_power_w / 1000
+        + vehicle.hotel_power_kw
+    )
+
+    return {
+        "velocity": velocity_mps,
+        "buoyancy": buoyancy,
+        "drag": drag,
+        "thrust": thrust,
+        "mechanical_power": mechanical_power_w / 1000,
+        "electrical_power": total_power_kw
+    }
+
+
+# ============================================================
+# ENERGY MODEL
+# ============================================================
+
+def usable_battery_energy_kwh(vehicle: Vehicle) -> float:
+    """
+    Usable battery energy.
+    """
+
+    return (
+        vehicle.battery_energy_kwh
+        * vehicle.battery_usable_fraction
+    )
+
+
+def endurance_hours(
+    vehicle: Vehicle,
+    power_kw: float
+) -> float:
+
+    if power_kw <= 0:
+        return float("inf")
+
+    energy = usable_battery_energy_kwh(vehicle)
+
+    return energy / power_kw
+
+
+def range_km(
+    velocity_mps: float,
+    endurance_h: float
+) -> float:
+
+    velocity_kmh = velocity_mps * 3.6
+
+    return velocity_kmh * endurance_h
+
+
+# ============================================================
+# VELOCITY SWEEP
+# ============================================================
+
+def generate_velocity_array(
+    minimum=1.0,
+    maximum=50.0,
+    points=200
+):
+
+    return np.linspace(
+        minimum,
+        maximum,
+        points
+    )
+
+
+def analyze_mode(
+    vehicle: Vehicle,
+    env: Environment,
+    mode: str,
+    velocities
+):
+
+    results = []
+
+    for v in velocities:
+
+        if mode == "flight":
+            result = flight_performance(
+                vehicle,
+                v,
+                env
+            )
+
+        elif mode == "surface":
+            result = surface_performance(
+                vehicle,
+                v,
+                env
+            )
+
+        elif mode == "underwater":
+            result = underwater_performance(
+                vehicle,
+                v,
+                env
+            )
+
+        else:
+            raise ValueError(
+                "Mode must be flight, surface, or underwater."
+            )
+
+        power = result["electrical_power"]
+
+        endurance = endurance_hours(
+            vehicle,
+            power
+        )
+
+        distance = range_km(
+            v,
+            endurance
+        )
+
+        result["endurance_h"] = endurance
+        result["range_km"] = distance
+
+        results.append(result)
+
+    return results
+
+
+# ============================================================
+# CSV EXPORT
+# ============================================================
+
+def save_results_csv(
+    results,
+    filename
+):
+
+    if not results:
+        return
+
+    path = Path(filename)
+
+    keys = results[0].keys()
+
+    with open(
+        path,
+        "w",
+        newline=""
+    ) as file:
+
+        writer = csv.DictWriter(
+            file,
+            fieldnames=keys
+        )
+
+        writer.writeheader()
+
+        for row in results:
+            writer.writerow(row)
+
+    print(f"Saved: {path}")
+
+
+# ============================================================
+# PLOTTING
+# ============================================================
+
+def plot_power(
+    velocities,
+    flight,
+    surface,
+    underwater
+):
+
+    plt.figure()
+
+    plt.plot(
+        velocities,
+        [x["electrical_power"] for x in flight],
+        label="Flight"
+    )
+
+    plt.plot(
+        velocities,
+        [x["electrical_power"] for x in surface],
+        label="Surface"
+    )
+
+    plt.plot(
+        velocities,
+        [x["electrical_power"] for x in underwater],
+        label="Underwater"
+    )
+
+    plt.xlabel("Velocity (m/s)")
+    plt.ylabel("Electrical Power (kW)")
+    plt.title("ANOAP Power Requirement")
+    plt.grid(True)
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig("power_vs_velocity.png", dpi=300)
+
+    plt.show()
+
+
+def plot_drag(
+    velocities,
+    flight,
+    surface,
+    underwater
+):
+
+    plt.figure()
+
+    plt.plot(
+        velocities,
+        [x["drag"] for x in flight],
+        label="Flight"
+    )
+
+    plt.plot(
+        velocities,
+        [x["drag"] for x in surface],
+        label="Surface"
+    )
+
+    plt.plot(
+        velocities,
+        [x["drag"] for x in underwater],
+        label="Underwater"
+    )
+
+    plt.xlabel("Velocity (m/s)")
+    plt.ylabel("Drag (N)")
+    plt.title("ANOAP Drag vs Velocity")
+    plt.grid(True)
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig("drag_vs_velocity.png", dpi=300)
+
+    plt.show()
+
+
+def plot_endurance(
+    velocities,
+    flight,
+    surface,
+    underwater
+):
+
+    plt.figure()
+
+    plt.plot(
+        velocities,
+        [x["endurance_h"] for x in flight],
+        label="Flight"
+    )
+
+    plt.plot(
+        velocities,
+        [x["endurance_h"] for x in surface],
+        label="Surface"
+    )
+
+    plt.plot(
+        velocities,
+        [x["endurance_h"] for x in underwater],
+        label="Underwater"
+    )
+
+    plt.xlabel("Velocity (m/s)")
+    plt.ylabel("Endurance (hours)")
+    plt.title("ANOAP Endurance")
+    plt.grid(True)
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig("endurance_vs_velocity.png", dpi=300)
+
+    plt.show()
+
+
+def plot_range(
+    velocities,
+    flight,
+    surface,
+    underwater
+):
+
+    plt.figure()
+
+    plt.plot(
+        velocities,
+        [x["range_km"] for x in flight],
+        label="Flight"
+    )
+
+    plt.plot(
+        velocities,
+        [x["range_km"] for x in surface],
+        label="Surface"
+    )
+
+    plt.plot(
+        velocities,
+        [x["range_km"] for x in underwater],
+        label="Underwater"
+    )
+
+    plt.xlabel("Velocity (m/s)")
+    plt.ylabel("Range (km)")
+    plt.title("ANOAP Theoretical Range")
+    plt.grid(True)
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig("range_vs_velocity.png", dpi=300)
+
+    plt.show()
+
+
+# ============================================================
+# VEHICLE REPORT
+# ============================================================
+
+def print_vehicle_report(
+    vehicle: Vehicle,
+    env: Environment
+):
+
+    weight = vehicle_weight(
+        vehicle,
+        env
+    )
+
+    buoyancy = buoyancy_force(
+        vehicle,
+        env
+    )
+
+    usable_energy = usable_battery_energy_kwh(
+        vehicle
+    )
+
+    print()
+    print("=" * 60)
+    print("ANOAP VEHICLE REPORT")
+    print("=" * 60)
+
+    print(f"Mass:                 {vehicle.mass_kg:.2f} kg")
+    print(f"Length:               {vehicle.length_m:.2f} m")
+    print(f"Width:                {vehicle.width_m:.2f} m")
+    print(f"Height:               {vehicle.height_m:.2f} m")
+    print(f"Wing area:            {vehicle.wing_area_m2:.2f} m²")
+
+    print()
+    print(f"Weight:               {weight:.2f} N")
+    print(f"Buoyancy:             {buoyancy:.2f} N")
+
+    if buoyancy > weight:
+        print("Float condition:      POSITIVE BUOYANCY")
+    elif abs(buoyancy - weight) < 1e-6:
+        print("Float condition:      NEUTRAL")
+    else:
+        print("Float condition:      NEGATIVE BUOYANCY")
+
+    print()
+    print(f"Battery:              {vehicle.battery_energy_kwh:.2f} kWh")
+    print(f"Usable battery:       {usable_energy:.2f} kWh")
+
+    print("=" * 60)
+    print()
+
+
+# ============================================================
+# FIND BEST OPERATING POINT
+# ============================================================
+
+def find_minimum_power_point(results):
+
+    valid = [
+        x for x in results
+        if math.isfinite(x["electrical_power"])
+        and x["electrical_power"] > 0
+    ]
+
+    if not valid:
+        return None
+
+    return min(
+        valid,
+        key=lambda x: x["electrical_power"]
+    )
+
+
+def print_best_points(
+    flight,
+    surface,
+    underwater
+):
+
+    modes = {
+        "FLIGHT": flight,
+        "SURFACE": surface,
+        "UNDERWATER": underwater
+    }
+
+    print()
+    print("=" * 60)
+    print("MINIMUM POWER OPERATING POINTS")
+    print("=" * 60)
+
+    for name, data in modes.items():
+
+        best = find_minimum_power_point(data)
+
+        if best is None:
+            continue
+
+        print()
+        print(name)
+
+        print(
+            f"Velocity:   {best['velocity']:.2f} m/s"
+        )
+
+        print(
+            f"Power:      {best['electrical_power']:.3f} kW"
+        )
+
+        print(
+            f"Endurance:  {best['endurance_h']:.2f} h"
+        )
+
+        print(
+            f"Range:      {best['range_km']:.2f} km"
+        )
+
+    print("=" * 60)
+
+
+# ============================================================
+# TRANSITION ENERGY
+# ============================================================
+
+def transition_energy(
+    vehicle: Vehicle,
+    transition_time_seconds: float,
+    average_power_kw: float
+) -> float:
+
+    """
+    Simplified transition energy:
+
+        E = P * t
+
+    Returns kWh.
+    """
+
+    hours = transition_time_seconds / 3600
+
+    return average_power_kw * hours
+
+
+# ============================================================
+# MISSION SIMULATION
+# ============================================================
+
+@dataclass
+class MissionSegment:
+    name: str
+    mode: str
+    velocity_mps: float
+    duration_hours: float
+
+
+def simulate_mission(
+    vehicle: Vehicle,
+    env: Environment,
+    mission
+):
+
+    remaining_energy = usable_battery_energy_kwh(
+        vehicle
+    )
+
+    print()
+    print("=" * 60)
+    print("MISSION SIMULATION")
+    print("=" * 60)
+
+    total_distance = 0.0
+    total_time = 0.0
+
+    for segment in mission:
+
+        if segment.mode == "flight":
+
+            result = flight_performance(
+                vehicle,
+                segment.velocity_mps,
+                env
+            )
+
+        elif segment.mode == "surface":
+
+            result = surface_performance(
+                vehicle,
+                segment.velocity_mps,
+                env
+            )
+
+        elif segment.mode == "underwater":
+
+            result = underwater_performance(
+                vehicle,
+                segment.velocity_mps,
+                env
+            )
+
+        else:
+            raise ValueError(
+                f"Unknown mode: {segment.mode}"
+            )
+
+        power = result["electrical_power"]
+
+        energy_used = (
+            power
+            * segment.duration_hours
+        )
+
+        distance = (
+            segment.velocity_mps
+            * 3.6
+            * segment.duration_hours
+        )
+
+        remaining_energy -= energy_used
+
+        total_distance += distance
+        total_time += segment.duration_hours
+
+        print()
+        print(f"Segment: {segment.name}")
+        print(f"Mode: {segment.mode}")
+        print(
+            f"Velocity: {segment.velocity_mps:.2f} m/s"
+        )
+        print(
+            f"Duration: {segment.duration_hours:.2f} h"
+        )
+        print(
+            f"Power: {power:.3f} kW"
+        )
+        print(
+            f"Energy used: {energy_used:.3f} kWh"
+        )
+        print(
+            f"Distance: {distance:.2f} km"
+        )
+        print(
+            f"Remaining energy: "
+            f"{remaining_energy:.3f} kWh"
+        )
+
+        if remaining_energy < 0:
+
+            print()
+            print("WARNING:")
+            print("MISSION EXCEEDED AVAILABLE ENERGY.")
+            break
+
+    print()
+    print("=" * 60)
+    print("MISSION SUMMARY")
+    print("=" * 60)
+
+    print(
+        f"Total mission time: "
+        f"{total_time:.2f} h"
+    )
+
+    print(
+        f"Total distance: "
+        f"{total_distance:.2f} km"
+    )
+
+    print(
+        f"Remaining energy: "
+        f"{remaining_energy:.3f} kWh"
+    )
+
+    print("=" * 60)
+
+
+# ============================================================
+# MAIN PROGRAM
+# ============================================================
+
+def main():
+
+    # --------------------------------------------------------
+    # CREATE VEHICLE
+    # --------------------------------------------------------
+
+    vehicle = Vehicle(
+        mass_kg=25.0,
+
+        length_m=2.0,
+        width_m=0.8,
+        height_m=0.35,
+
+        wing_area_m2=1.5,
+
+        cd_air=0.08,
+
+        cl_max=1.2,
+
+        cd_surface=0.06,
+
+        cd_underwater=0.35,
+
+        frontal_area_air_m2=0.25,
+
+        frontal_area_water_m2=0.28,
+
+        propulsive_efficiency_air=0.65,
+
+        propulsive_efficiency_surface=0.55,
+
+        propulsive_efficiency_underwater=0.50,
+
+        battery_energy_kwh=20.0,
+
+        battery_usable_fraction=0.90,
+
+        hotel_power_kw=0.15,
+
+        displacement_volume_m3=0.20
+    )
+
+    # --------------------------------------------------------
+    # ENVIRONMENT
+    # --------------------------------------------------------
+
+    env = Environment(
+        air_density=1.225,
+        water_density=1025.0,
+        gravity=9.80665
+    )
+
+    # --------------------------------------------------------
+    # REPORT
+    # --------------------------------------------------------
+
+    print_vehicle_report(
+        vehicle,
+        env
+    )
+
+    # --------------------------------------------------------
+    # VELOCITY RANGE
+    # --------------------------------------------------------
+
+    velocities = generate_velocity_array(
+        minimum=1.0,
+        maximum=50.0,
+        points=200
+    )
+
+    # --------------------------------------------------------
+    # RUN SIMULATIONS
+    # --------------------------------------------------------
+
+    flight_results = analyze_mode(
+        vehicle,
+        env,
+        "flight",
+        velocities
+    )
+
+    surface_results = analyze_mode(
+        vehicle,
+        env,
+        "surface",
+        velocities
+    )
+
+    underwater_results = analyze_mode(
+        vehicle,
+        env,
+        "underwater",
+        velocities
+    )
+
+    # --------------------------------------------------------
+    # SAVE DATA
+    # --------------------------------------------------------
+
+    save_results_csv(
+        flight_results,
+        "anoap_flight_results.csv"
+    )
+
+    save_results_csv(
+        surface_results,
+        "anoap_surface_results.csv"
+    )
+
+    save_results_csv(
+        underwater_results,
+        "anoap_underwater_results.csv"
+    )
+
+    # --------------------------------------------------------
+    # BEST OPERATING POINTS
+    # --------------------------------------------------------
+
+    print_best_points(
+        flight_results,
+        surface_results,
+        underwater_results
+    )
+
+    # --------------------------------------------------------
+    # PLOTS
+    # --------------------------------------------------------
+
+    plot_power(
+        velocities,
+        flight_results,
+        surface_results,
+        underwater_results
+    )
+
+    plot_drag(
+        velocities,
+        flight_results,
+        surface_results,
+        underwater_results
+    )
+
+    plot_endurance(
+        velocities,
+        flight_results,
+        surface_results,
+        underwater_results
+    )
+
+    plot_range(
+        velocities,
+        flight_results,
+        surface_results,
+        underwater_results
+    )
+
+    # --------------------------------------------------------
+    # EXAMPLE MISSION
+    # --------------------------------------------------------
+
+    mission = [
+
+        MissionSegment(
+            name="Atmospheric cruise",
+            mode="flight",
+            velocity_mps=20.0,
+            duration_hours=1.0
+        ),
+
+        MissionSegment(
+            name="Ocean surface transit",
+            mode="surface",
+            velocity_mps=5.0,
+            duration_hours=1.0
+        ),
+
+        MissionSegment(
+            name="Underwater survey",
+            mode="underwater",
+            velocity_mps=2.0,
+            duration_hours=2.0
+        ),
+
+        MissionSegment(
+            name="Return flight",
+            mode="flight",
+            velocity_mps=20.0,
+            duration_hours=1.0
+        )
+    ]
+
+    simulate_mission(
+        vehicle,
+        env,
+        mission
+    )
+
+    print()
+    print("ANOAP simulation complete.")
+
+
+# ============================================================
+# PROGRAM ENTRY POINT
+# ============================================================
+
+if __name__ == "__main__":
+    main()
