@@ -1,2491 +1,2634 @@
 <!DOCTYPE html>
+
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0">
-
-<title>ANOAP Engineering Simulator</title>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>ANOAP V2 — Multidomain Engineering Simulator</title>
 
 <style>
-
-* {
-    box-sizing: border-box;
+:root{
+  --bg:#070b14;
+  --panel:#0e1626;
+  --panel2:#111c30;
+  --line:#233452;
+  --text:#e7edf8;
+  --muted:#8e9bb5;
+  --accent:#55b7ff;
+  --good:#51d88a;
+  --warn:#ffc857;
+  --danger:#ff6675;
 }
 
-body {
+*{box-sizing:border-box}
 
-    margin: 0;
-
-    font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-
-    background: #0b1020;
-
-    color: #e8edf7;
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,Segoe UI,Arial,sans-serif;
 }
 
-header {
-
-    padding: 25px;
-
-    background: #11182d;
-
-    border-bottom:
-        1px solid #263252;
+button,input,select{
+  font:inherit;
 }
 
-header h1 {
-
-    margin: 0;
-
-    font-size: 30px;
+button{
+  border:1px solid var(--line);
+  background:#14223b;
+  color:var(--text);
+  padding:8px 11px;
+  border-radius:6px;
+  cursor:pointer;
 }
 
-header p {
-
-    color: #9da9c7;
+button:hover{
+  background:#1b3154;
 }
 
-.container {
-
-    max-width: 1500px;
-
-    margin: auto;
-
-    padding: 20px;
+button.active{
+  background:#245b88;
 }
 
-.grid {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(auto-fit, minmax(320px, 1fr));
-
-    gap: 20px;
+input,select{
+  width:100%;
+  background:#08101d;
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:5px;
+  padding:7px;
 }
 
-.card {
-
-    background: #121a31;
-
-    border:
-        1px solid #263252;
-
-    border-radius: 12px;
-
-    padding: 20px;
-
-    margin-bottom: 20px;
+.app{
+  display:grid;
+  grid-template-columns:330px 1fr 310px;
+  grid-template-rows:58px 1fr 190px;
+  width:100%;
+  height:100%;
 }
 
-.card h2 {
-
-    margin-top: 0;
-
-    font-size: 20px;
+header{
+  grid-column:1/4;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 18px;
+  border-bottom:1px solid var(--line);
+  background:#0b1220;
 }
 
-label {
-
-    display: block;
-
-    margin-top: 12px;
-
-    color: #aeb9d1;
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
 }
 
-input {
-
-    width: 100%;
-
-    padding: 9px;
-
-    margin-top: 5px;
-
-    border-radius: 6px;
-
-    border: 1px solid #334267;
-
-    background: #0b1020;
-
-    color: white;
+.logo{
+  width:36px;
+  height:36px;
+  border-radius:9px;
+  display:grid;
+  place-items:center;
+  background:#143a5d;
+  font-size:19px;
 }
 
-button {
-
-    padding: 11px 16px;
-
-    border: none;
-
-    border-radius: 7px;
-
-    cursor: pointer;
-
-    margin: 5px;
-
-    background: #263d70;
-
-    color: white;
-
-    font-weight: bold;
+.brand h1{
+  margin:0;
+  font-size:17px;
 }
 
-button:hover {
-
-    background: #35569a;
+.brand small{
+  color:var(--muted);
 }
 
-.metric {
-
-    background: #0c1327;
-
-    padding: 15px;
-
-    border-radius: 8px;
-
-    margin-top: 10px;
+.header-actions{
+  display:flex;
+  gap:7px;
 }
 
-.metric strong {
-
-    display: block;
-
-    font-size: 23px;
-
-    margin-top: 5px;
+.sidebar{
+  overflow:auto;
+  padding:12px;
+  background:#09111e;
+  border-right:1px solid var(--line);
 }
 
-canvas {
-
-    max-height: 400px;
+.rightbar{
+  overflow:auto;
+  padding:12px;
+  background:#09111e;
+  border-left:1px solid var(--line);
 }
 
-table {
-
-    width: 100%;
-
-    border-collapse: collapse;
-
-    margin-top: 15px;
+.viewport{
+  position:relative;
+  min-width:0;
+  min-height:0;
 }
 
-th,
-td {
-
-    padding: 9px;
-
-    border-bottom:
-        1px solid #293553;
-
-    text-align: left;
+#scene{
+  width:100%;
+  height:100%;
+  display:block;
 }
 
-.status {
-
-    padding: 12px;
-
-    border-radius: 8px;
-
-    background: #101a30;
-
-    margin-top: 10px;
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:11px;
+  margin-bottom:10px;
 }
 
-footer {
-
-    text-align: center;
-
-    padding: 30px;
-
-    color: #6f7b99;
+.panel h2{
+  margin:0 0 9px;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#a9c6e8;
 }
 
-.small {
-
-    font-size: 13px;
-
-    color: #8995b0;
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
 }
 
+.field{
+  margin-bottom:8px;
+}
+
+.field label{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+  margin-bottom:4px;
+}
+
+.value{
+  color:white;
+  font-weight:600;
+}
+
+.metric-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px;
+}
+
+.metric{
+  background:#0a1220;
+  border:1px solid #1c2b45;
+  border-radius:6px;
+  padding:8px;
+}
+
+.metric span{
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+}
+
+.metric strong{
+  display:block;
+  margin-top:3px;
+  font-size:15px;
+}
+
+.status{
+  border-radius:6px;
+  padding:8px;
+  background:#0a1220;
+  border:1px solid var(--line);
+  font-size:11px;
+}
+
+.good{color:var(--good)}
+.warn{color:var(--warn)}
+.danger{color:var(--danger)}
+
+.mode-buttons{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:5px;
+}
+
+.mode-buttons button{
+  font-size:11px;
+}
+
+#overlay{
+  position:absolute;
+  left:12px;
+  top:12px;
+  pointer-events:none;
+}
+
+.hud{
+  display:grid;
+  grid-template-columns:repeat(4,110px);
+  gap:6px;
+}
+
+.hud-card{
+  background:rgba(7,12,22,.82);
+  border:1px solid #263b5c;
+  border-radius:6px;
+  padding:7px;
+  backdrop-filter:blur(4px);
+}
+
+.hud-card span{
+  display:block;
+  color:#8ea1bd;
+  font-size:9px;
+  text-transform:uppercase;
+}
+
+.hud-card strong{
+  font-size:15px;
+}
+
+#modeBadge{
+  margin-top:6px;
+  display:inline-block;
+  background:#10283f;
+  border:1px solid #2a5b7d;
+  padding:5px 8px;
+  border-radius:5px;
+  font-size:10px;
+}
+
+.bottom{
+  grid-column:1/4;
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr;
+  gap:10px;
+  padding:10px;
+  border-top:1px solid var(--line);
+  background:#09111e;
+}
+
+.chart-panel{
+  min-width:0;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:8px;
+}
+
+.chart-panel h3{
+  margin:0 0 4px;
+  font-size:11px;
+  color:#a9c6e8;
+}
+
+canvas.chart{
+  width:100%!important;
+  height:135px!important;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  font-size:10px;
+}
+
+th,td{
+  padding:5px;
+  border-bottom:1px solid #1b2940;
+  text-align:left;
+}
+
+th{
+  color:#8ea1bd;
+}
+
+.log{
+  height:120px;
+  overflow:auto;
+  font-family:Consolas,monospace;
+  font-size:10px;
+  color:#a8b7cf;
+}
+
+.log div{
+  padding:2px 0;
+}
+
+.legend{
+  display:grid;
+  gap:4px;
+  font-size:10px;
+}
+
+.legend div{
+  display:flex;
+  justify-content:space-between;
+}
+
+.range{
+  width:100%;
+}
+
+@media(max-width:1100px){
+  .app{
+    grid-template-columns:270px 1fr;
+  }
+
+  .rightbar{
+    display:none;
+  }
+
+  header{
+    grid-column:1/3;
+  }
+
+  .bottom{
+    grid-column:1/3;
+  }
+}
 </style>
 
 </head>
 
-
 <body>
 
+<div class="app">
 
 <header>
+  <div class="brand">
+    <div class="logo">A</div>
+    <div>
+      <h1>ANOAP V2</h1>
+      <small>Autonomous Ocean-Aerospace Platform • Engineering Research Simulator</small>
+    </div>
+  </div>
 
-<div class="container">
-
-<h1>🚀 ANOAP Engineering Simulator</h1>
-
-<p>
-Autonomous Ocean-Aerospace Platform —
-Interactive Multidomain Engineering Research Environment
-</p>
-
-</div>
-
+  <div class="header-actions">
+    <button id="runBtn">▶ Run</button>
+    <button id="pauseBtn">Ⅱ Pause</button>
+    <button id="resetBtn">↻ Reset</button>
+    <button id="missionBtn">🚀 Mission</button>
+  </div>
 </header>
 
+<aside class="sidebar">
 
-<div class="container">
+<div class="panel">
+<h2>Operating Mode</h2>
 
+<div class="mode-buttons">
+<button data-mode="air">AIR</button>
+<button data-mode="surface">SURFACE</button>
+<button data-mode="underwater">UNDERWATER</button>
+</div>
 
-<!-- ===================================================== -->
-<!-- VEHICLE PARAMETERS -->
-<!-- ===================================================== -->
+<div style="margin-top:7px">
+<button id="transitionBtn" style="width:100%">⇄ Transition</button>
+</div>
+</div>
 
-<div class="card">
+<div class="panel">
+<h2>Vehicle</h2>
 
-<h2>⚙️ Vehicle Parameters</h2>
+<div class="row">
 
-<div class="grid">
+<div class="field">
+<label>Mass kg</label>
+<input id="mass" type="number" value="25" step=".5">
+</div>
 
+<div class="field">
+<label>Length m</label>
+<input id="length" type="number" value="2" step=".1">
+</div>
+
+<div class="field">
+<label>Width m</label>
+<input id="width" type="number" value=".8" step=".05">
+</div>
+
+<div class="field">
+<label>Height m</label>
+<input id="height" type="number" value=".35" step=".05">
+</div>
+
+<div class="field">
+<label>Wing area m²</label>
+<input id="wingArea" type="number" value="1.5" step=".1">
+</div>
+
+<div class="field">
+<label>Volume m³</label>
+<input id="volume" type="number" value=".20" step=".01">
+</div>
+
+</div>
+</div>
+
+<div class="panel">
+<h2>Aerodynamics</h2>
+
+<div class="field">
+<label>Air Cd</label>
+<input id="cdAir" type="number" value=".08" step=".005">
+</div>
+
+<div class="field">
+<label>Air frontal area m²</label>
+<input id="airArea" type="number" value=".25" step=".01">
+</div>
+
+<div class="field">
+<label>Maximum lift coefficient</label>
+<input id="clMax" type="number" value="1.2" step=".05">
+</div>
+
+<div class="field">
+<label>Air propulsion efficiency</label>
+<input id="etaAir" type="number" value=".65" step=".01" min=".05" max="1">
+</div>
+
+</div>
+
+<div class="panel">
+<h2>Hydrodynamics</h2>
+
+<div class="row">
+
+<div class="field">
+<label>Surface Cd</label>
+<input id="cdSurface" type="number" value=".06" step=".01">
+</div>
+
+<div class="field">
+<label>Underwater Cd</label>
+<input id="cdWater" type="number" value=".35" step=".01">
+</div>
+
+<div class="field">
+<label>Water area m²</label>
+<input id="waterArea" type="number" value=".28" step=".01">
+</div>
+
+<div class="field">
+<label>Surface η</label>
+<input id="etaSurface" type="number" value=".55" step=".01">
+</div>
+
+<div class="field">
+<label>Underwater η</label>
+<input id="etaWater" type="number" value=".50" step=".01">
+</div>
+
+<div class="field">
+<label>Seawater density</label>
+<input id="rhoWater" type="number" value="1025" step="1">
+</div>
+
+</div>
+</div>
+
+<div class="panel">
+<h2>Energy</h2>
+
+<div class="field">
+<label>Battery energy kWh</label>
+<input id="battery" type="number" value="20" step="1">
+</div>
+
+<div class="field">
+<label>Usable fraction</label>
+<input id="usableFraction" type="number" value=".9" step=".01" min=".1" max="1">
+</div>
+
+<div class="field">
+<label>Hotel load kW</label>
+<input id="hotel" type="number" value=".15" step=".01">
+</div>
+
+<div class="field">
+<label>Conceptual advanced-source contribution kW</label>
+<input id="advancedPower" type="number" value="0" step="1">
+</div>
+
+<div class="status">
+Advanced energy source is represented only as an abstract system-level
+power input. No reactor design or nuclear operating parameters are modeled.
+</div>
+</div>
+
+<div class="panel">
+<h2>Environment</h2>
+
+<div class="field">
+<label>Air density kg/m³</label>
+<input id="rhoAir" type="number" value="1.225" step=".001">
+</div>
+
+<div class="field">
+<label>Wind m/s</label>
+<input id="wind" type="number" value="0" step=".5">
+</div>
+
+<div class="field">
+<label>Current m/s</label>
+<input id="current" type="number" value="0" step=".1">
+</div>
+
+<div class="field">
+<label>Wave amplitude m</label>
+<input id="wave" type="number" value=".4" step=".1">
+</div>
+</div>
+
+<div class="panel">
+<h2>Simulation</h2>
+
+<div class="field">
+<label>Simulation speed</label>
+<input id="simSpeed" type="range" min=".1" max="5" value="1" step=".1">
+</div>
+
+<div class="field">
+<label>Camera distance</label>
+<input id="cameraDistance" type="range" min="5" max="40" value="16" step=".5">
+</div>
 
 <div>
-
-<label>
-Mass (kg)
-<input id="mass"
-       type="number"
-       value="25"
-       step="0.1">
-</label>
-
-<label>
-Vehicle Length (m)
-<input id="length"
-       type="number"
-       value="2"
-       step="0.1">
-</label>
-
-<label>
-Vehicle Width (m)
-<input id="width"
-       type="number"
-       value="0.8"
-       step="0.1">
-</label>
-
-<label>
-Vehicle Height (m)
-<input id="height"
-       type="number"
-       value="0.35"
-       step="0.05">
-</label>
-
+<button id="vectorsBtn">Force vectors</button>
+<button id="pointsBtn">CG/CB</button>
+</div>
 </div>
 
+</aside>
 
-<div>
+<main class="viewport">
 
-<label>
-Wing Area (m²)
-<input id="wingArea"
-       type="number"
-       value="1.5"
-       step="0.1">
-</label>
+<canvas id="scene"></canvas>
 
-<label>
-Air Drag Coefficient
-<input id="cdAir"
-       type="number"
-       value="0.08"
-       step="0.01">
-</label>
+<div id="overlay">
 
-<label>
-Surface Drag Coefficient
-<input id="cdSurface"
-       type="number"
-       value="0.06"
-       step="0.01">
-</label>
+<div class="hud">
 
-<label>
-Underwater Drag Coefficient
-<input id="cdWater"
-       type="number"
-       value="0.35"
-       step="0.01">
-</label>
-
+<div class="hud-card">
+<span>Mode</span>
+<strong id="hudMode">AIR</strong>
 </div>
 
+<div class="hud-card">
+<span>Speed</span>
+<strong id="hudSpeed">0 m/s</strong>
+</div>
 
-<div>
+<div class="hud-card">
+<span>Altitude</span>
+<strong id="hudAlt">0 m</strong>
+</div>
 
-<label>
-Air Frontal Area (m²)
-<input id="airArea"
-       type="number"
-       value="0.25"
-       step="0.01">
-</label>
-
-<label>
-Water Frontal Area (m²)
-<input id="waterArea"
-       type="number"
-       value="0.28"
-       step="0.01">
-</label>
-
-<label>
-Displacement Volume (m³)
-<input id="volume"
-       type="number"
-       value="0.20"
-       step="0.01">
-</label>
-
-<label>
-Battery Energy (kWh)
-<input id="battery"
-       type="number"
-       value="20"
-       step="1">
-</label>
-
+<div class="hud-card">
+<span>Depth</span>
+<strong id="hudDepth">0 m</strong>
 </div>
 
 </div>
 
-<button onclick="runSimulation()">
-▶ Run Simulation
-</button>
-
-<button onclick="resetVehicle()">
-↻ Reset
-</button>
+<div id="modeBadge">
+SIMULATION READY
+</div>
 
 </div>
 
+</main>
 
+<aside class="rightbar">
 
-<!-- ===================================================== -->
-<!-- BASIC VEHICLE STATUS -->
-<!-- ===================================================== -->
+<div class="panel">
+<h2>Live Telemetry</h2>
 
-<div class="grid">
-
-
-<div class="card">
-
-<h2>⚖️ Vehicle Physics</h2>
+<div class="metric-grid">
 
 <div class="metric">
-Weight
-<strong id="weight">—</strong>
-N
-</div>
-
-<div class="metric">
-Buoyancy
-<strong id="buoyancy">—</strong>
-N
-</div>
-
-<div class="metric">
-Displacement
-<strong id="displacement">—</strong>
-m³
-</div>
-
-<div class="status"
-     id="floatStatus">
-Waiting for simulation...
-</div>
-
-</div>
-
-
-<div class="card">
-
-<h2>🔋 Energy System</h2>
-
-<div class="metric">
-
-Battery
-
-<strong id="batteryOutput">
-—
-</strong>
-
-kWh
-
-</div>
-
-<div class="metric">
-
-Usable Energy
-
-<strong id="usableEnergy">
-—
-</strong>
-
-kWh
-
-</div>
-
-<div class="metric">
-
-Conceptual Continuous Power
-
-<strong id="powerOutput">
-—
-</strong>
-
-kW
-
-</div>
-
-<p class="small">
-
-The energy model is a systems-level placeholder.
-It does not represent a nuclear reactor design.
-
-</p>
-
-</div>
-
-
-<div class="card">
-
-<h2>🧭 Mission Status</h2>
-
-<div class="metric">
-
-Mission Distance
-
-<strong id="missionDistance">
-—
-</strong>
-
-km
-
-</div>
-
-<div class="metric">
-
-Mission Energy
-
-<strong id="missionEnergy">
-—
-</strong>
-
-kWh
-
+<span>Lift</span>
+<strong id="lift">0 N</strong>
 </div>
 
 <div class="metric">
+<span>Drag</span>
+<strong id="drag">0 N</strong>
+</div>
 
-Remaining Energy
+<div class="metric">
+<span>Buoyancy</span>
+<strong id="buoyancy">0 N</strong>
+</div>
 
-<strong id="remainingEnergy">
-—
-</strong>
+<div class="metric">
+<span>Thrust</span>
+<strong id="thrust">0 N</strong>
+</div>
 
-kWh
+<div class="metric">
+<span>Power</span>
+<strong id="power">0 kW</strong>
+</div>
 
+<div class="metric">
+<span>Endurance</span>
+<strong id="endurance">0 h</strong>
+</div>
+
+<div class="metric">
+<span>Range</span>
+<strong id="range">0 km</strong>
+</div>
+
+<div class="metric">
+<span>Energy</span>
+<strong id="energy">0 kWh</strong>
+</div>
+
+</div>
+</div>
+
+<div class="panel">
+<h2>Stability</h2>
+
+<div class="metric-grid">
+
+<div class="metric">
+<span>CG X</span>
+<strong id="cgx">0</strong>
+</div>
+
+<div class="metric">
+<span>CB X</span>
+<strong id="cbx">0</strong>
+</div>
+
+<div class="metric">
+<span>CG-CB</span>
+<strong id="cgcb">0</strong>
+</div>
+
+<div class="metric">
+<span>Stability index</span>
+<strong id="stability">0</strong>
+</div>
+
+</div>
+</div>
+
+<div class="panel">
+<h2>Thermal System</h2>
+
+<div class="metric-grid">
+
+<div class="metric">
+<span>Heat generation</span>
+<strong id="heat">0 kW</strong>
+</div>
+
+<div class="metric">
+<span>Heat rejection</span>
+<strong id="rejection">0 kW</strong>
+</div>
+
+<div class="metric">
+<span>Thermal state</span>
+<strong id="thermal">NOMINAL</strong>
+</div>
+
+<div class="metric">
+<span>Temperature</span>
+<strong id="temp">20 °C</strong>
+</div>
+
+</div>
+</div>
+
+<div class="panel">
+<h2>Mission Progress</h2>
+
+<div class="metric">
+<span>Mission time</span>
+<strong id="missionTime">0 min</strong>
+</div>
+
+<div class="metric">
+<span>Distance</span>
+<strong id="missionDistance">0 km</strong>
+</div>
+
+<div class="metric">
+<span>Energy consumed</span>
+<strong id="missionEnergy">0 kWh</strong>
 </div>
 
 </div>
 
+<div class="panel">
+<h2>System Status</h2>
+
+<div id="systemStatus" class="status">
+All systems nominal.
+</div>
 </div>
 
+</aside>
 
+<section class="bottom">
 
-<!-- ===================================================== -->
-<!-- VELOCITY PARAMETERS -->
-<!-- ===================================================== -->
-
-<div class="card">
-
-<h2>🚀 Velocity Simulation</h2>
-
-<div class="grid">
-
-<div>
-
-<label>
-Minimum Velocity (m/s)
-
-<input id="minVelocity"
-       type="number"
-       value="1">
-
-</label>
-
+<div class="chart-panel">
+<h3>POWER</h3>
+<canvas id="powerChart" class="chart"></canvas>
 </div>
 
-<div>
+<div class="chart-panel">
+<h3>FORCES</h3>
+<canvas id="forceChart" class="chart"></canvas>
+</div>
 
-<label>
-Maximum Velocity (m/s)
+<div class="chart-panel">
+<h3>THERMAL</h3>
+<canvas id="thermalChart" class="chart"></canvas>
+</div>
 
-<input id="maxVelocity"
-       type="number"
-       value="50">
-
-</label>
+</section>
 
 </div>
 
-<div>
+<script type="importmap">
+{
+  "imports":{
+    "three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+    "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+  }
+}
+</script>
 
-<label>
-Simulation Points
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<input id="points"
-       type="number"
-       value="100">
+<script type="module">
 
-</label>
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-</div>
 
-</div>
-
-</div>
-
-
-
-<!-- ===================================================== -->
-<!-- CHARTS -->
-<!-- ===================================================== -->
-
-<div class="card">
-
-<h2>⚡ Power vs Velocity</h2>
-
-<canvas id="powerChart"></canvas>
-
-</div>
-
-
-<div class="card">
-
-<h2>🌀 Drag vs Velocity</h2>
-
-<canvas id="dragChart"></canvas>
-
-</div>
-
-
-<div class="card">
-
-<h2>⏱️ Endurance vs Velocity</h2>
-
-<canvas id="enduranceChart"></canvas>
-
-</div>
-
-
-<div class="card">
-
-<h2>🌍 Theoretical Range vs Velocity</h2>
-
-<canvas id="rangeChart"></canvas>
-
-</div>
-
-
-
-<!-- ===================================================== -->
-<!-- OPERATING POINT -->
-<!-- ===================================================== -->
-
-<div class="card">
-
-<h2>🎯 Optimal Operating Points</h2>
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Mode</th>
-
-<th>Velocity</th>
-
-<th>Power</th>
-
-<th>Endurance</th>
-
-<th>Range</th>
-
-</tr>
-
-</thead>
-
-<tbody id="optimalTable">
-
-</tbody>
-
-</table>
-
-</div>
-
-
-
-<!-- ===================================================== -->
-<!-- MISSION -->
-<!-- ===================================================== -->
-
-<div class="card">
-
-<h2>🛰️ ANOAP Mission Simulator</h2>
-
-<p>
-The vehicle performs a simplified multidomain mission:
-</p>
-
-<div class="grid">
-
-<div>
-
-<label>
-Flight Velocity (m/s)
-
-<input id="flightVelocity"
-       type="number"
-       value="20">
-
-</label>
-
-<label>
-Flight Time (hours)
-
-<input id="flightTime"
-       type="number"
-       value="1">
-
-</label>
-
-</div>
-
-
-<div>
-
-<label>
-Surface Velocity (m/s)
-
-<input id="surfaceVelocity"
-       type="number"
-       value="5">
-
-</label>
-
-<label>
-Surface Time (hours)
-
-<input id="surfaceTime"
-       type="number"
-       value="1">
-
-</label>
-
-</div>
-
-
-<div>
-
-<label>
-Underwater Velocity (m/s)
-
-<input id="underwaterVelocity"
-       type="number"
-       value="2">
-
-</label>
-
-<label>
-Underwater Time (hours)
-
-<input id="underwaterTime"
-       type="number"
-       value="2">
-
-</label>
-
-</div>
-
-
-<div>
-
-<label>
-Return Flight Time (hours)
-
-<input id="returnTime"
-       type="number"
-       value="1">
-
-</label>
-
-</div>
-
-</div>
-
-<button onclick="runMission()">
-
-🚀 Run Mission
-
-</button>
-
-<div id="missionReport"
-     class="status">
-
-Mission not started.
-
-</div>
-
-</div>
-
-
-
-<!-- ===================================================== -->
-<!-- EXPORT -->
-<!-- ===================================================== -->
-
-<div class="card">
-
-<h2>📊 Research Data</h2>
-
-<button onclick="downloadCSV()">
-
-Download CSV Dataset
-
-</button>
-
-<button onclick="downloadReport()">
-
-Download Engineering Report
-
-</button>
-
-<p class="small">
-
-Use the generated datasets in your engineering journal.
-Record assumptions, equations, failures and improvements.
-
-</p>
-
-</div>
-
-
-
-</div>
-
-
-<footer>
-
-ANOAP Independent Engineering Research Project<br>
-
-Aerospace • Marine • Energy • Autonomous Systems
-
-</footer>
-
-
-
-<script>
-
-
-// ============================================================
-// CONSTANTS
-// ============================================================
+/* =========================================================
+   CONSTANTS
+========================================================= */
 
 const G = 9.80665;
 
-const AIR_DENSITY = 1.225;
+let mode = "air";
 
-const WATER_DENSITY = 1025;
+let running = true;
+
+let paused = false;
+
+let missionRunning = false;
+
+let simTime = 0;
+
+let missionClock = 0;
+
+let distanceTravelled = 0;
+
+let energyConsumed = 0;
+
+let transitionProgress = 0;
+
+let transitioning = false;
+
+let showVectors = true;
+
+let showPoints = true;
 
 
-// ============================================================
-// CHART STORAGE
-// ============================================================
+/* =========================================================
+   VEHICLE PARAMETERS
+========================================================= */
 
-let powerChart;
-let dragChart;
-let enduranceChart;
-let rangeChart;
+function params(){
 
-let simulationData = [];
+  return {
 
+    mass:+document.getElementById("mass").value,
 
-// ============================================================
-// GET VEHICLE PARAMETERS
-// ============================================================
+    length:+document.getElementById("length").value,
 
-function getVehicle() {
+    width:+document.getElementById("width").value,
 
-    return {
+    height:+document.getElementById("height").value,
 
-        mass:
-            Number(
-                document.getElementById("mass").value
-            ),
+    wingArea:+document.getElementById("wingArea").value,
 
-        length:
-            Number(
-                document.getElementById("length").value
-            ),
+    volume:+document.getElementById("volume").value,
 
-        width:
-            Number(
-                document.getElementById("width").value
-            ),
+    cdAir:+document.getElementById("cdAir").value,
 
-        height:
-            Number(
-                document.getElementById("height").value
-            ),
+    airArea:+document.getElementById("airArea").value,
 
-        wingArea:
-            Number(
-                document.getElementById("wingArea").value
-            ),
+    clMax:+document.getElementById("clMax").value,
 
-        cdAir:
-            Number(
-                document.getElementById("cdAir").value
-            ),
+    etaAir:+document.getElementById("etaAir").value,
 
-        cdSurface:
-            Number(
-                document.getElementById("cdSurface").value
-            ),
+    cdSurface:+document.getElementById("cdSurface").value,
 
-        cdWater:
-            Number(
-                document.getElementById("cdWater").value
-            ),
+    cdWater:+document.getElementById("cdWater").value,
 
-        airArea:
-            Number(
-                document.getElementById("airArea").value
-            ),
+    waterArea:+document.getElementById("waterArea").value,
 
-        waterArea:
-            Number(
-                document.getElementById("waterArea").value
-            ),
+    etaSurface:+document.getElementById("etaSurface").value,
 
-        volume:
-            Number(
-                document.getElementById("volume").value
-            ),
+    etaWater:+document.getElementById("etaWater").value,
 
-        battery:
-            Number(
-                document.getElementById("battery").value
-            )
+    rhoWater:+document.getElementById("rhoWater").value,
 
-    };
+    rhoAir:+document.getElementById("rhoAir").value,
+
+    wind:+document.getElementById("wind").value,
+
+    current:+document.getElementById("current").value,
+
+    wave:+document.getElementById("wave").value,
+
+    battery:+document.getElementById("battery").value,
+
+    usableFraction:+document.getElementById("usableFraction").value,
+
+    hotel:+document.getElementById("hotel").value,
+
+    advancedPower:+document.getElementById("advancedPower").value
+
+  };
 
 }
 
 
-// ============================================================
-// BASIC PHYSICS
-// ============================================================
+/* =========================================================
+   PHYSICS
+========================================================= */
 
-function weight(vehicle) {
+function weight(p){
 
-    return vehicle.mass * G;
+  return p.mass*G;
+
+}
+
+function buoyancy(p){
+
+  return p.rhoWater*G*p.volume;
+
+}
+
+function drag(rho,v,cd,A){
+
+  return .5*rho*v*v*cd*A;
+
+}
+
+function flightPhysics(p,v){
+
+  const W=weight(p);
+
+  const effectiveV=Math.max(.1,v-p.wind);
+
+  const q=.5*p.rhoAir*effectiveV*effectiveV;
+
+  const cl=W/(q*p.wingArea);
+
+  const lift=q*p.wingArea*cl;
+
+  const D=drag(
+    p.rhoAir,
+    effectiveV,
+    p.cdAir,
+    p.airArea
+  );
+
+  const thrust=D;
+
+  const mechanical=thrust*effectiveV;
+
+  const propulsion=mechanical/
+    Math.max(.05,p.etaAir)/1000;
+
+  const power=
+    propulsion+
+    p.hotel;
+
+  return {
+    lift,
+    drag:D,
+    buoyancy:buoyancy(p),
+    thrust,
+    power,
+    cl,
+    effectiveV
+  };
+
+}
+
+function surfacePhysics(p,v){
+
+  const relative=
+    Math.max(.1,v-p.current);
+
+  const D=drag(
+    p.rhoWater,
+    relative,
+    p.cdSurface,
+    p.waterArea
+  );
+
+  const thrust=D;
+
+  const mechanical=
+    thrust*relative;
+
+  const power=
+    mechanical/
+    Math.max(.05,p.etaSurface)/
+    1000+
+    p.hotel;
+
+  return {
+    lift:0,
+    drag:D,
+    buoyancy:buoyancy(p),
+    thrust,
+    power,
+    cl:0,
+    effectiveV:relative
+  };
+
+}
+
+function underwaterPhysics(p,v){
+
+  const relative=
+    Math.max(.1,v-p.current);
+
+  const D=drag(
+    p.rhoWater,
+    relative,
+    p.cdWater,
+    p.waterArea
+  );
+
+  const thrust=D;
+
+  const mechanical=
+    thrust*relative;
+
+  const power=
+    mechanical/
+    Math.max(.05,p.etaWater)/
+    1000+
+    p.hotel;
+
+  return {
+    lift:0,
+    drag:D,
+    buoyancy:buoyancy(p),
+    thrust,
+    power,
+    cl:0,
+    effectiveV:relative
+  };
+
+}
+
+function physics(p,v){
+
+  if(mode==="air")
+    return flightPhysics(p,v);
+
+  if(mode==="surface")
+    return surfacePhysics(p,v);
+
+  return underwaterPhysics(p,v);
 
 }
 
 
-function buoyancy(vehicle) {
+/* =========================================================
+   3D SCENE
+========================================================= */
 
-    return (
-        WATER_DENSITY *
-        G *
-        vehicle.volume
+const canvas=
+  document.getElementById("scene");
+
+const scene=
+  new THREE.Scene();
+
+scene.background=
+  new THREE.Color(0x06101d);
+
+scene.fog=
+  new THREE.FogExp2(
+    0x06101d,
+    .025
+  );
+
+
+const camera=
+  new THREE.PerspectiveCamera(
+    55,
+    canvas.clientWidth/
+    canvas.clientHeight,
+    .1,
+    1000
+  );
+
+camera.position.set(
+  9,
+  6,
+  12
+);
+
+
+const renderer=
+  new THREE.WebGLRenderer({
+    canvas,
+    antialias:true
+  });
+
+renderer.setPixelRatio(
+  Math.min(
+    window.devicePixelRatio,
+    2
+  )
+);
+
+renderer.setSize(
+  canvas.clientWidth,
+  canvas.clientHeight,
+  false
+);
+
+
+const controls=
+  new OrbitControls(
+    camera,
+    renderer.domElement
+  );
+
+controls.enableDamping=true;
+
+controls.target.set(
+  0,0,0
+);
+
+
+/* =========================================================
+   LIGHTING
+========================================================= */
+
+scene.add(
+  new THREE.HemisphereLight(
+    0x9bc8ff,
+    0x162238,
+    2
+  )
+);
+
+const sun=
+  new THREE.DirectionalLight(
+    0xffffff,
+    2
+  );
+
+sun.position.set(
+  10,
+  15,
+  8
+);
+
+scene.add(sun);
+
+
+/* =========================================================
+   WORLD
+========================================================= */
+
+const world=
+  new THREE.Group();
+
+scene.add(world);
+
+
+const ocean=
+  new THREE.Mesh(
+    new THREE.PlaneGeometry(
+      150,
+      150,
+      50,
+      50
+    ),
+    new THREE.MeshStandardMaterial({
+      color:0x073f66,
+      transparent:true,
+      opacity:.65,
+      roughness:.25,
+      metalness:.05
+    })
+  );
+
+ocean.rotation.x=
+  -Math.PI/2;
+
+ocean.position.y=0;
+
+world.add(ocean);
+
+
+const seabed=
+  new THREE.Mesh(
+    new THREE.PlaneGeometry(
+      150,
+      150,
+      20,
+      20
+    ),
+    new THREE.MeshStandardMaterial({
+      color:0x263126,
+      roughness:1
+    })
+  );
+
+seabed.rotation.x=
+  -Math.PI/2;
+
+seabed.position.y=-12;
+
+world.add(seabed);
+
+
+/* =========================================================
+   VEHICLE
+========================================================= */
+
+const vehicleGroup=
+  new THREE.Group();
+
+scene.add(vehicleGroup);
+
+
+const bodyMaterial=
+  new THREE.MeshStandardMaterial({
+    color:0x9da9b8,
+    metalness:.65,
+    roughness:.3
+  });
+
+
+const darkMaterial=
+  new THREE.MeshStandardMaterial({
+    color:0x162235,
+    metalness:.7,
+    roughness:.25
+  });
+
+
+const accentMaterial=
+  new THREE.MeshStandardMaterial({
+    color:0x55b7ff,
+    emissive:0x062b45,
+    metalness:.5,
+    roughness:.25
+  });
+
+
+/* Main body */
+
+const body=
+  new THREE.Mesh(
+    new THREE.CapsuleGeometry(
+      .7,
+      2.6,
+      8,
+      16
+    ),
+    bodyMaterial
+  );
+
+body.rotation.z=
+  Math.PI/2;
+
+vehicleGroup.add(body);
+
+
+/* Nose sensor */
+
+const nose=
+  new THREE.Mesh(
+    new THREE.SphereGeometry(
+      .48,
+      24,
+      16
+    ),
+    accentMaterial
+  );
+
+nose.position.x=1.65;
+
+vehicleGroup.add(nose);
+
+
+/* Rear pod */
+
+const rear=
+  new THREE.Mesh(
+    new THREE.CylinderGeometry(
+      .38,
+      .38,
+      .9,
+      20
+    ),
+    darkMaterial
+  );
+
+rear.rotation.z=
+  Math.PI/2;
+
+rear.position.x=-1.65;
+
+vehicleGroup.add(rear);
+
+
+/* =========================================================
+   WINGS
+========================================================= */
+
+function makeWing(side){
+
+  const wing=
+    new THREE.Mesh(
+      new THREE.BoxGeometry(
+        1.9,
+        .08,
+        .65
+      ),
+      bodyMaterial
     );
 
+  wing.position.set(
+    0,
+    0,
+    side*1.15
+  );
+
+  wing.rotation.y=
+    side*.04;
+
+  return wing;
+
 }
 
+const leftWing=
+  makeWing(1);
 
-function drag(
-    density,
-    velocity,
-    cd,
-    area
-) {
+const rightWing=
+  makeWing(-1);
 
-    return (
-        0.5 *
-        density *
-        velocity *
-        velocity *
-        cd *
-        area
+vehicleGroup.add(
+  leftWing,
+  rightWing
+);
+
+
+/* =========================================================
+   TAIL
+========================================================= */
+
+const tailFin=
+  new THREE.Mesh(
+    new THREE.BoxGeometry(
+      .65,
+      .55,
+      .08
+    ),
+    bodyMaterial
+  );
+
+tailFin.position.set(
+  -1.05,
+  .38,
+  0
+);
+
+vehicleGroup.add(tailFin);
+
+
+const tailLeft=
+  new THREE.Mesh(
+    new THREE.BoxGeometry(
+      .55,
+      .06,
+      .45
+    ),
+    bodyMaterial
+  );
+
+tailLeft.position.set(
+  -1.25,
+  .05,
+  .62
+);
+
+vehicleGroup.add(tailLeft);
+
+
+const tailRight=
+  tailLeft.clone();
+
+tailRight.position.z=
+  -.62;
+
+vehicleGroup.add(tailRight);
+
+
+/* =========================================================
+   PROPELLERS
+========================================================= */
+
+const propellers=[];
+
+function makePropeller(z){
+
+  const hub=
+    new THREE.Mesh(
+      new THREE.CylinderGeometry(
+        .12,
+        .12,
+        .3,
+        12
+      ),
+      darkMaterial
     );
 
+  hub.rotation.x=
+    Math.PI/2;
+
+  hub.position.set(
+    -1.45,
+    -.05,
+    z
+  );
+
+  const bladeGroup=
+    new THREE.Group();
+
+  hub.add(bladeGroup);
+
+  for(
+    let i=0;
+    i<3;
+    i++
+  ){
+
+    const blade=
+      new THREE.Mesh(
+        new THREE.BoxGeometry(
+          .65,
+          .06,
+          .12
+        ),
+        accentMaterial
+      );
+
+    blade.position.x=.35;
+
+    blade.rotation.y=
+      i*Math.PI*2/3;
+
+    bladeGroup.add(blade);
+
+  }
+
+  vehicleGroup.add(hub);
+
+  propellers.push(
+    bladeGroup
+  );
+
 }
 
+makePropeller(.48);
+makePropeller(-.48);
 
-// ============================================================
-// FLIGHT MODEL
-// ============================================================
 
-function flightModel(
-    vehicle,
-    velocity
-) {
+/* =========================================================
+   CG / CB MARKERS
+========================================================= */
 
-    if (velocity <= 0) {
+const cgMarker=
+  new THREE.Mesh(
+    new THREE.SphereGeometry(
+      .12,
+      12,
+      8
+    ),
+    new THREE.MeshBasicMaterial({
+      color:0xff4444
+    })
+  );
 
-        return {
+cgMarker.position.set(
+  -.2,
+  0,
+  0
+);
 
-            power: 0,
-            drag: 0,
-            lift: 0,
-            cl: Infinity,
-            endurance: 0,
-            range: 0
+vehicleGroup.add(cgMarker);
 
-        };
+
+const cbMarker=
+  new THREE.Mesh(
+    new THREE.SphereGeometry(
+      .12,
+      12,
+      8
+    ),
+    new THREE.MeshBasicMaterial({
+      color:0x44ff88
+    })
+  );
+
+cbMarker.position.set(
+  .25,
+  -.15,
+  0
+);
+
+vehicleGroup.add(cbMarker);
+
+
+/* =========================================================
+   FORCE ARROWS
+========================================================= */
+
+const liftArrow=
+  new THREE.ArrowHelper(
+    new THREE.Vector3(
+      0,1,0
+    ),
+    new THREE.Vector3(
+      0,0,0
+    ),
+    1,
+    0x55ff88
+  );
+
+const dragArrow=
+  new THREE.ArrowHelper(
+    new THREE.Vector3(
+      -1,0,0
+    ),
+    new THREE.Vector3(
+      0,0,0
+    ),
+    1,
+    0xff6688
+  );
+
+const buoyancyArrow=
+  new THREE.ArrowHelper(
+    new THREE.Vector3(
+      0,1,0
+    ),
+    new THREE.Vector3(
+      .5,0,0
+    ),
+    1,
+    0x55b7ff
+  );
+
+vehicleGroup.add(
+  liftArrow,
+  dragArrow,
+  buoyancyArrow
+);
+
+
+/* =========================================================
+   LABEL-LIKE LINES
+========================================================= */
+
+const axis=
+  new THREE.AxesHelper(2);
+
+vehicleGroup.add(axis);
+
+
+/* =========================================================
+   VEHICLE ANIMATION STATE
+========================================================= */
+
+let altitude=3;
+
+let depth=0;
+
+let speed=20;
+
+let pitch=0;
+
+let roll=0;
+
+let yaw=0;
+
+
+/* =========================================================
+   MODE SETTER
+========================================================= */
+
+function setMode(newMode){
+
+  mode=newMode;
+
+  document.querySelectorAll(
+    "[data-mode]"
+  ).forEach(
+    b=>b.classList.toggle(
+      "active",
+      b.dataset.mode===mode
+    )
+  );
+
+  document.getElementById(
+    "hudMode"
+  ).textContent=
+    mode.toUpperCase();
+
+  document.getElementById(
+    "modeBadge"
+  ).textContent=
+    mode.toUpperCase()+
+    " MODE";
+
+  log(
+    "Operating mode changed to "+
+    mode.toUpperCase()
+  );
+
+}
+
+document.querySelectorAll(
+  "[data-mode]"
+).forEach(
+  button=>{
+    button.onclick=
+      ()=>{
+        setMode(
+          button.dataset.mode
+        );
+      };
+  }
+);
+
+
+/* =========================================================
+   TRANSITION
+========================================================= */
+
+document.getElementById(
+  "transitionBtn"
+).onclick=
+()=>{
+
+  transitioning=true;
+
+  transitionProgress=0;
+
+  log(
+    "Multidomain transition initiated."
+  );
+
+};
+
+
+/* =========================================================
+   FORCE VECTOR VISIBILITY
+========================================================= */
+
+document.getElementById(
+  "vectorsBtn"
+).onclick=
+()=>{
+
+  showVectors=!showVectors;
+
+  liftArrow.visible=
+    showVectors;
+
+  dragArrow.visible=
+    showVectors;
+
+  buoyancyArrow.visible=
+    showVectors;
+
+};
+
+
+/* =========================================================
+   CG/CB VISIBILITY
+========================================================= */
+
+document.getElementById(
+  "pointsBtn"
+).onclick=
+()=>{
+
+  showPoints=!showPoints;
+
+  cgMarker.visible=
+    showPoints;
+
+  cbMarker.visible=
+    showPoints;
+
+};
+
+
+/* =========================================================
+   PHYSICAL STATE
+========================================================= */
+
+function updateVehicleState(dt){
+
+  const p=params();
+
+  if(transitioning){
+
+    transitionProgress+=
+      dt*.18;
+
+    const t=
+      Math.min(
+        transitionProgress,
+        1
+      );
+
+    if(
+      mode==="air"
+    ){
+
+      altitude=
+        THREE.MathUtils.lerp(
+          altitude,
+          .5,
+          t*.08
+        );
+
+      vehicleGroup.rotation.z=
+        THREE.MathUtils.lerp(
+          vehicleGroup.rotation.z,
+          -.15,
+          t*.05
+        );
 
     }
 
+    if(
+      mode==="underwater"
+    ){
 
-    const W =
-        weight(vehicle);
-
-
-    const denominator =
-        0.5 *
-        AIR_DENSITY *
-        velocity *
-        velocity *
-        vehicle.wingArea;
-
-
-    const cl =
-        W / denominator;
-
-
-    const lift =
-        0.5 *
-        AIR_DENSITY *
-        velocity *
-        velocity *
-        vehicle.wingArea *
-        cl;
-
-
-    const D =
-        drag(
-            AIR_DENSITY,
-            velocity,
-            vehicle.cdAir,
-            vehicle.airArea
+      depth=
+        THREE.MathUtils.lerp(
+          depth,
+          5,
+          t*.08
         );
 
+      vehicleGroup.rotation.z=
+        THREE.MathUtils.lerp(
+          vehicleGroup.rotation.z,
+          -.3,
+          t*.05
+        );
 
-    const mechanicalPower =
-        D * velocity;
+    }
 
+    if(
+      t>=1
+    ){
 
-    const efficiency = 0.65;
+      transitioning=false;
 
+      log(
+        "Transition sequence complete."
+      );
 
-    const electricalPower =
-        mechanicalPower /
-        efficiency /
-        1000;
+    }
 
-
-    const totalPower =
-        electricalPower +
-        0.15;
-
-
-    const usableEnergy =
-        vehicle.battery * 0.9;
-
-
-    const endurance =
-        usableEnergy /
-        totalPower;
+  }
 
 
-    const range =
-        velocity *
-        3.6 *
-        endurance;
+  if(mode==="air"){
+
+    altitude=
+      Math.max(
+        .5,
+        altitude
+      );
+
+    vehicleGroup.position.y=
+      altitude;
+
+    vehicleGroup.rotation.z=
+      pitch;
+
+  }
+
+  else if(mode==="surface"){
+
+    const wave=
+      p.wave*
+      Math.sin(
+        simTime*1.4
+      );
+
+    vehicleGroup.position.y=
+      wave;
+
+    vehicleGroup.rotation.z=
+      wave*.025;
+
+  }
+
+  else{
+
+    depth=
+      Math.max(
+        1,
+        depth
+      );
+
+    vehicleGroup.position.y=
+      -depth;
+
+    vehicleGroup.rotation.z=
+      -.12;
+
+  }
 
 
-    return {
+  /* propeller animation */
 
-        power: totalPower,
+  const spin=
+    dt*
+    speed*
+    .6;
 
-        drag: D,
+  propellers.forEach(
+    p=>{
+      p.rotation.z+=spin;
+    }
+  );
 
-        lift: lift,
 
-        cl: cl,
+  /* water movement */
 
-        endurance: endurance,
+  ocean.position.x=
+    (simTime*.04)%20;
 
-        range: range
 
-    };
+  /* dynamic camera */
+
+  const targetDistance=
+    +document.getElementById(
+      "cameraDistance"
+    ).value;
+
+  camera.position.x=
+    Math.cos(
+      simTime*.08
+    )*
+    targetDistance;
 
 }
 
 
-// ============================================================
-// SURFACE MODEL
-// ============================================================
+/* =========================================================
+   TELEMETRY
+========================================================= */
 
-function surfaceModel(
-    vehicle,
-    velocity
-) {
+function updateTelemetry(dt){
 
-    const D =
-        drag(
-            WATER_DENSITY,
-            velocity,
-            vehicle.cdSurface,
-            vehicle.waterArea
-        );
+  const p=params();
 
+  const result=
+    physics(
+      p,
+      speed
+    );
 
-    const mechanicalPower =
-        D * velocity;
+  const usable=
+    p.battery*
+    p.usableFraction;
 
 
-    const electricalPower =
-        mechanicalPower /
-        0.55 /
-        1000;
+  const totalPower=
+    Math.max(
+      .001,
+      result.power-
+      p.advancedPower
+    );
 
 
-    const totalPower =
-        electricalPower +
-        0.15;
+  const remaining=
+    Math.max(
+      0,
+      usable-energyConsumed
+    );
 
 
-    const usableEnergy =
-        vehicle.battery * 0.9;
+  const endurance=
+    remaining/
+    totalPower;
 
 
-    const endurance =
-        usableEnergy /
-        totalPower;
+  const range=
+    speed*
+    3.6*
+    endurance;
 
 
-    const range =
-        velocity *
-        3.6 *
-        endurance;
+  const heat=
+    result.power*.65;
 
 
-    return {
+  let rejection;
 
-        power: totalPower,
-
-        drag: D,
-
-        endurance: endurance,
-
-        range: range
-
-    };
-
-}
+  if(mode==="underwater")
+    rejection=
+      heat*.92;
+  else if(mode==="surface")
+    rejection=
+      heat*.76;
+  else
+    rejection=
+      heat*.38;
 
 
-// ============================================================
-// UNDERWATER MODEL
-// ============================================================
-
-function underwaterModel(
-    vehicle,
-    velocity
-) {
-
-    const D =
-        drag(
-            WATER_DENSITY,
-            velocity,
-            vehicle.cdWater,
-            vehicle.waterArea
-        );
+  const thermalTemp=
+    20+
+    Math.max(
+      0,
+      heat-rejection
+    )*
+    14;
 
 
-    const mechanicalPower =
-        D * velocity;
+  let thermalState=
+    "NOMINAL";
+
+  if(thermalTemp>50)
+    thermalState=
+      "ELEVATED";
+
+  if(thermalTemp>75)
+    thermalState=
+      "HIGH";
+
+  if(thermalTemp>100)
+    thermalState=
+      "CRITICAL";
 
 
-    const electricalPower =
-        mechanicalPower /
-        0.50 /
-        1000;
+  /* stability */
+
+  const cgX=
+    -.2;
+
+  const cbX=
+    .25;
+
+  const separation=
+    Math.abs(
+      cbX-cgX
+    );
+
+  const stabilityIndex=
+    separation/
+    Math.max(
+      .1,
+      p.length
+    );
 
 
-    const totalPower =
-        electricalPower +
-        0.15;
+  /* update DOM */
+
+  text(
+    "lift",
+    result.lift.toFixed(1)+" N"
+  );
+
+  text(
+    "drag",
+    result.drag.toFixed(1)+" N"
+  );
+
+  text(
+    "buoyancy",
+    result.buoyancy.toFixed(1)+" N"
+  );
+
+  text(
+    "thrust",
+    result.thrust.toFixed(1)+" N"
+  );
+
+  text(
+    "power",
+    result.power.toFixed(3)+" kW"
+  );
+
+  text(
+    "endurance",
+    endurance.toFixed(2)+" h"
+  );
+
+  text(
+    "range",
+    range.toFixed(1)+" km"
+  );
+
+  text(
+    "energy",
+    remaining.toFixed(2)+" kWh"
+  );
+
+  text(
+    "cgx",
+    cgX.toFixed(2)+" m"
+  );
+
+  text(
+    "cbx",
+    cbX.toFixed(2)+" m"
+  );
+
+  text(
+    "cgcb",
+    separation.toFixed(2)+" m"
+  );
+
+  text(
+    "stability",
+    stabilityIndex.toFixed(3)
+  );
+
+  text(
+    "heat",
+    heat.toFixed(2)+" kW"
+  );
+
+  text(
+    "rejection",
+    rejection.toFixed(2)+" kW"
+  );
+
+  text(
+    "thermal",
+    thermalState
+  );
+
+  text(
+    "temp",
+    thermalTemp.toFixed(1)+" °C"
+  );
+
+  text(
+    "hudSpeed",
+    speed.toFixed(1)+" m/s"
+  );
+
+  text(
+    "hudAlt",
+    altitude.toFixed(1)+" m"
+  );
+
+  text(
+    "hudDepth",
+    depth.toFixed(1)+" m"
+  );
+
+  text(
+    "missionTime",
+    (missionClock/60).toFixed(1)+" min"
+  );
+
+  text(
+    "missionDistance",
+    distanceTravelled.toFixed(2)+" km"
+  );
+
+  text(
+    "missionEnergy",
+    energyConsumed.toFixed(2)+" kWh"
+  );
 
 
-    const usableEnergy =
-        vehicle.battery * 0.9;
-
-
-    const endurance =
-        usableEnergy /
-        totalPower;
-
-
-    const range =
-        velocity *
-        3.6 *
-        endurance;
-
-
-    return {
-
-        power: totalPower,
-
-        drag: D,
-
-        endurance: endurance,
-
-        range: range
-
-    };
-
-}
-
-
-// ============================================================
-// MAIN SIMULATION
-// ============================================================
-
-function runSimulation() {
-
-
-    const vehicle =
-        getVehicle();
-
-
-    const minVelocity =
-        Number(
-            document.getElementById(
-                "minVelocity"
-            ).value
-        );
-
-
-    const maxVelocity =
-        Number(
-            document.getElementById(
-                "maxVelocity"
-            ).value
-        );
-
-
-    const points =
-        Number(
-            document.getElementById(
-                "points"
-            ).value
-        );
-
-
-    const W =
-        weight(vehicle);
-
-
-    const B =
-        buoyancy(vehicle);
-
-
+  const status=
     document.getElementById(
-        "weight"
-    ).textContent =
-        W.toFixed(2);
+      "systemStatus"
+    );
 
 
+  if(thermalTemp>100){
+
+    status.textContent=
+      "THERMAL LIMIT EXCEEDED";
+
+    status.className=
+      "status danger";
+
+  }
+
+  else if(
+    remaining<=0
+  ){
+
+    status.textContent=
+      "ENERGY DEPLETED";
+
+    status.className=
+      "status danger";
+
+  }
+
+  else if(
+    mode==="air" &&
+    result.cl>p.clMax
+  ){
+
+    status.textContent=
+      "STALL MARGIN EXCEEDED — required CL is above configured maximum.";
+
+    status.className=
+      "status warn";
+
+  }
+
+  else{
+
+    status.textContent=
+      "All modeled systems nominal.";
+
+    status.className=
+      "status good";
+
+  }
+
+
+  /* arrows */
+
+  const liftScale=
+    Math.min(
+      4,
+      Math.max(
+        .2,
+        result.lift/20
+      )
+    );
+
+  const dragScale=
+    Math.min(
+      4,
+      Math.max(
+        .2,
+        result.drag/20
+      )
+    );
+
+  const buoyScale=
+    Math.min(
+      4,
+      Math.max(
+        .2,
+        result.buoyancy/100
+      )
+    );
+
+
+  liftArrow.setLength(
+    liftScale
+  );
+
+  dragArrow.setLength(
+    dragScale
+  );
+
+  buoyancyArrow.setLength(
+    buoyScale
+  );
+
+
+  /* charts */
+
+  pushChart(
+    result.power,
+    result.drag,
+    thermalTemp
+  );
+
+}
+
+
+/* =========================================================
+   SIMULATION CLOCK
+========================================================= */
+
+function tick(dt){
+
+  const p=params();
+
+  if(
+    !paused
+  ){
+
+    const simSpeed=
+      +document.getElementById(
+        "simSpeed"
+      ).value;
+
+    const scaled=
+      dt*simSpeed;
+
+    simTime+=scaled;
+
+    missionClock+=scaled;
+
+    if(
+      missionRunning
+    ){
+
+      distanceTravelled+=
+        speed*
+        3.6*
+        scaled/3600;
+
+      const result=
+        physics(
+          p,
+          speed
+        );
+
+      energyConsumed+=
+        result.power*
+        scaled/3600;
+
+    }
+
+  }
+
+
+  updateVehicleState(dt);
+
+  updateTelemetry(dt);
+
+}
+
+
+/* =========================================================
+   MISSION
+========================================================= */
+
+document.getElementById(
+  "missionBtn"
+).onclick=
+()=>{
+
+  missionRunning=
+    !missionRunning;
+
+  const btn=
     document.getElementById(
-        "buoyancy"
-    ).textContent =
-        B.toFixed(2);
-
-
-    document.getElementById(
-        "displacement"
-    ).textContent =
-        vehicle.volume.toFixed(3);
-
-
-    document.getElementById(
-        "batteryOutput"
-    ).textContent =
-        vehicle.battery.toFixed(2);
-
-
-    document.getElementById(
-        "usableEnergy"
-    ).textContent =
-        (
-            vehicle.battery * 0.9
-        ).toFixed(2);
-
-
-    if (B > W) {
-
-        document.getElementById(
-            "floatStatus"
-        ).textContent =
-            "✓ POSITIVE BUOYANCY — vehicle tends to float.";
-
-    }
-
-    else if (B < W) {
-
-        document.getElementById(
-            "floatStatus"
-        ).textContent =
-            "⚠ NEGATIVE BUOYANCY — vehicle tends to sink.";
-
-    }
-
-    else {
-
-        document.getElementById(
-            "floatStatus"
-        ).textContent =
-            "⚖ NEUTRAL BUOYANCY.";
-
-    }
-
-
-    simulationData = [];
-
-
-    let velocities = [];
-
-    let flightPower = [];
-    let surfacePower = [];
-    let underwaterPower = [];
-
-    let flightDrag = [];
-    let surfaceDrag = [];
-    let underwaterDrag = [];
-
-    let flightEndurance = [];
-    let surfaceEndurance = [];
-    let underwaterEndurance = [];
-
-    let flightRange = [];
-    let surfaceRange = [];
-    let underwaterRange = [];
-
-
-    for (
-        let i = 0;
-        i < points;
-        i++
-    ) {
-
-        const v =
-            minVelocity +
-            (
-                maxVelocity -
-                minVelocity
-            ) *
-            (
-                i /
-                (points - 1)
-            );
-
-
-        const flight =
-            flightModel(
-                vehicle,
-                v
-            );
-
-
-        const surface =
-            surfaceModel(
-                vehicle,
-                v
-            );
-
-
-        const underwater =
-            underwaterModel(
-                vehicle,
-                v
-            );
-
-
-        velocities.push(v);
-
-
-        flightPower.push(
-            flight.power
-        );
-
-        surfacePower.push(
-            surface.power
-        );
-
-        underwaterPower.push(
-            underwater.power
-        );
-
-
-        flightDrag.push(
-            flight.drag
-        );
-
-        surfaceDrag.push(
-            surface.drag
-        );
-
-        underwaterDrag.push(
-            underwater.drag
-        );
-
-
-        flightEndurance.push(
-            flight.endurance
-        );
-
-        surfaceEndurance.push(
-            surface.endurance
-        );
-
-        underwaterEndurance.push(
-            underwater.endurance
-        );
-
-
-        flightRange.push(
-            flight.range
-        );
-
-        surfaceRange.push(
-            surface.range
-        );
-
-        underwaterRange.push(
-            underwater.range
-        );
-
-
-        simulationData.push({
-
-            velocity: v,
-
-            flightPower:
-                flight.power,
-
-            surfacePower:
-                surface.power,
-
-            underwaterPower:
-                underwater.power,
-
-            flightDrag:
-                flight.drag,
-
-            surfaceDrag:
-                surface.drag,
-
-            underwaterDrag:
-                underwater.drag,
-
-            flightEndurance:
-                flight.endurance,
-
-            surfaceEndurance:
-                surface.endurance,
-
-            underwaterEndurance:
-                underwater.endurance,
-
-            flightRange:
-                flight.range,
-
-            surfaceRange:
-                surface.range,
-
-            underwaterRange:
-                underwater.range
-
-        });
-
-    }
-
-
-    createCharts(
-        velocities,
-        flightPower,
-        surfacePower,
-        underwaterPower,
-        flightDrag,
-        surfaceDrag,
-        underwaterDrag,
-        flightEndurance,
-        surfaceEndurance,
-        underwaterEndurance,
-        flightRange,
-        surfaceRange,
-        underwaterRange
+      "missionBtn"
     );
 
-
-    updateOptimalTable();
-
-}
-
-
-// ============================================================
-// CHART CREATION
-// ============================================================
-
-function createCharts(
-
-    velocities,
-
-    flightPower,
-    surfacePower,
-    underwaterPower,
-
-    flightDrag,
-    surfaceDrag,
-    underwaterDrag,
-
-    flightEndurance,
-    surfaceEndurance,
-    underwaterEndurance,
-
-    flightRange,
-    surfaceRange,
-    underwaterRange
-
-) {
-
-
-    if (powerChart)
-        powerChart.destroy();
-
-    if (dragChart)
-        dragChart.destroy();
-
-    if (enduranceChart)
-        enduranceChart.destroy();
-
-    if (rangeChart)
-        rangeChart.destroy();
-
-
-    powerChart =
-        new Chart(
-            document.getElementById(
-                "powerChart"
-            ),
-            {
-
-                type: "line",
-
-                data: {
-
-                    labels:
-                        velocities,
-
-                    datasets: [
-
-                        {
-                            label: "Flight",
-                            data: flightPower,
-                            borderWidth: 2
-                        },
-
-                        {
-                            label: "Surface",
-                            data: surfacePower,
-                            borderWidth: 2
-                        },
-
-                        {
-                            label: "Underwater",
-                            data: underwaterPower,
-                            borderWidth: 2
-                        }
-
-                    ]
-
-                },
-
-                options: {
-
-                    responsive: true,
-
-                    scales: {
-
-                        x: {
-                            title: {
-                                display: true,
-                                text: "Velocity (m/s)"
-                            }
-                        },
-
-                        y: {
-                            title: {
-                                display: true,
-                                text: "Power (kW)"
-                            }
-                        }
-
-                    }
-
-                }
-
-            }
-        );
-
-
-    dragChart =
-        new Chart(
-            document.getElementById(
-                "dragChart"
-            ),
-            {
-
-                type: "line",
-
-                data: {
-
-                    labels:
-                        velocities,
-
-                    datasets: [
-
-                        {
-                            label: "Flight",
-                            data: flightDrag,
-                            borderWidth: 2
-                        },
-
-                        {
-                            label: "Surface",
-                            data: surfaceDrag,
-                            borderWidth: 2
-                        },
-
-                        {
-                            label: "Underwater",
-                            data: underwaterDrag,
-                            borderWidth: 2
-                        }
-
-                    ]
-
-                },
-
-                options: {
-
-                    responsive: true
-
-                }
-
-            }
-        );
-
-
-    enduranceChart =
-        new Chart(
-            document.getElementById(
-                "enduranceChart"
-            ),
-            {
-
-                type: "line",
-
-                data: {
-
-                    labels:
-                        velocities,
-
-                    datasets: [
-
-                        {
-                            label: "Flight",
-                            data: flightEndurance,
-                            borderWidth: 2
-                        },
-
-                        {
-                            label: "Surface",
-                            data: surfaceEndurance,
-                            borderWidth: 2
-                        },
-
-                        {
-                            label: "Underwater",
-                            data: underwaterEndurance,
-                            borderWidth: 2
-                        }
-
-                    ]
-
-                },
-
-                options: {
-
-                    responsive: true
-
-                }
-
-            }
-        );
-
-
-    rangeChart =
-        new Chart(
-            document.getElementById(
-                "rangeChart"
-            ),
-            {
-
-                type: "line",
-
-                data: {
-
-                    labels:
-                        velocities,
-
-                    datasets: [
-
-                        {
-                            label: "Flight",
-                            data: flightRange,
-                            borderWidth: 2
-                        },
-
-                        {
-                            label: "Surface",
-                            data: surfaceRange,
-                            borderWidth: 2
-                        },
-
-                        {
-                            label: "Underwater",
-                            data: underwaterRange,
-                            borderWidth: 2
-                        }
-
-                    ]
-
-                },
-
-                options: {
-
-                    responsive: true
-
-                }
-
-            }
-        );
-
-}
-
-
-// ============================================================
-// FIND OPTIMAL POINT
-// ============================================================
-
-function minimum(
-    array,
-    property
-) {
-
-    return array.reduce(
-
-        (best, current) => {
-
-            if (
-                current[property] <
-                best[property]
-            ) {
-
-                return current;
-
-            }
-
-            return best;
-
-        }
-
+  btn.textContent=
+    missionRunning
+    ? "⏹ Stop Mission"
+    : "🚀 Mission";
+
+  if(
+    missionRunning
+  ){
+
+    log(
+      "Autonomous mission started."
     );
 
-}
+  }
+  else{
 
-
-// ============================================================
-// UPDATE TABLE
-// ============================================================
-
-function updateOptimalTable() {
-
-
-    if (
-        simulationData.length === 0
-    ) {
-
-        return;
-
-    }
-
-
-    const flight =
-        simulationData.map(
-            x => ({
-
-                velocity: x.velocity,
-                power: x.flightPower,
-                endurance: x.flightEndurance,
-                range: x.flightRange
-
-            })
-        );
-
-
-    const surface =
-        simulationData.map(
-            x => ({
-
-                velocity: x.velocity,
-                power: x.surfacePower,
-                endurance: x.surfaceEndurance,
-                range: x.surfaceRange
-
-            })
-        );
-
-
-    const underwater =
-        simulationData.map(
-            x => ({
-
-                velocity: x.velocity,
-                power: x.underwaterPower,
-                endurance: x.underwaterEndurance,
-                range: x.underwaterRange
-
-            })
-        );
-
-
-    const bestFlight =
-        minimum(
-            flight,
-            "power"
-        );
-
-
-    const bestSurface =
-        minimum(
-            surface,
-            "power"
-        );
-
-
-    const bestUnderwater =
-        minimum(
-            underwater,
-            "power"
-        );
-
-
-    const table =
-        document.getElementById(
-            "optimalTable"
-        );
-
-
-    table.innerHTML = "";
-
-
-    addRow(
-        table,
-        "Flight",
-        bestFlight
+    log(
+      "Autonomous mission stopped."
     );
 
+  }
 
-    addRow(
-        table,
-        "Surface",
-        bestSurface
-    );
+};
 
 
-    addRow(
-        table,
-        "Underwater",
-        bestUnderwater
-    );
+/* =========================================================
+   RUN / PAUSE
+========================================================= */
 
-}
+document.getElementById(
+  "runBtn"
+).onclick=
+()=>{
 
+  running=true;
 
-function addRow(
-    table,
-    name,
-    data
-) {
+  paused=false;
 
-    const row =
-        table.insertRow();
+  log(
+    "Simulation running."
+  );
 
+};
 
-    row.innerHTML = `
+document.getElementById(
+  "pauseBtn"
+).onclick=
+()=>{
 
-        <td>${name}</td>
+  paused=!paused;
 
-        <td>
-            ${data.velocity.toFixed(2)}
-            m/s
-        </td>
+  log(
+    paused
+    ? "Simulation paused."
+    : "Simulation resumed."
+  );
 
-        <td>
-            ${data.power.toFixed(3)}
-            kW
-        </td>
-
-        <td>
-            ${data.endurance.toFixed(2)}
-            h
-        </td>
-
-        <td>
-            ${data.range.toFixed(2)}
-            km
-        </td>
-
-    `;
-
-}
+};
 
 
-// ============================================================
-// MISSION SIMULATION
-// ============================================================
+/* =========================================================
+   RESET
+========================================================= */
 
-function runMission() {
+document.getElementById(
+  "resetBtn"
+).onclick=
+()=>{
+
+  simTime=0;
+
+  missionClock=0;
+
+  distanceTravelled=0;
+
+  energyConsumed=0;
+
+  altitude=3;
+
+  depth=0;
+
+  speed=20;
+
+  mode="air";
+
+  transitioning=false;
+
+  missionRunning=false;
+
+  setMode("air");
+
+  log(
+    "Simulation reset."
+  );
+
+};
 
 
-    const vehicle =
-        getVehicle();
+/* =========================================================
+   CHARTS
+========================================================= */
+
+const chartLabels=[];
+
+const powerData=[];
+
+const forceData=[];
+
+const thermalData=[];
 
 
-    let remaining =
-        vehicle.battery * 0.9;
+function makeChart(
+  id,
+  label,
+  data
+){
 
+  return new Chart(
+    document.getElementById(id),
+    {
+      type:"line",
 
-    let totalDistance = 0;
+      data:{
+        labels:chartLabels,
 
-    let totalEnergy = 0;
+        datasets:[{
+          label,
+          data,
+          borderWidth:1.5,
+          pointRadius:0,
+          tension:.2
+        }]
+      },
 
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
 
-    const segments = [
+        animation:false,
 
-        {
-
-            name:
-                "Initial Flight",
-
-            mode:
-                "flight",
-
-            velocity:
-                Number(
-                    document.getElementById(
-                        "flightVelocity"
-                    ).value
-                ),
-
-            time:
-                Number(
-                    document.getElementById(
-                        "flightTime"
-                    ).value
-                )
-
+        plugins:{
+          legend:{
+            display:false
+          }
         },
 
-
-        {
-
-            name:
-                "Ocean Surface",
-
-            mode:
-                "surface",
-
-            velocity:
-                Number(
-                    document.getElementById(
-                        "surfaceVelocity"
-                    ).value
-                ),
-
-            time:
-                Number(
-                    document.getElementById(
-                        "surfaceTime"
-                    ).value
-                )
-
-        },
-
-
-        {
-
-            name:
-                "Underwater Survey",
-
-            mode:
-                "underwater",
-
-            velocity:
-                Number(
-                    document.getElementById(
-                        "underwaterVelocity"
-                    ).value
-                ),
-
-            time:
-                Number(
-                    document.getElementById(
-                        "underwaterTime"
-                    ).value
-                )
-
-        },
-
-
-        {
-
-            name:
-                "Return Flight",
-
-            mode:
-                "flight",
-
-            velocity:
-                Number(
-                    document.getElementById(
-                        "flightVelocity"
-                    ).value
-                ),
-
-            time:
-                Number(
-                    document.getElementById(
-                        "returnTime"
-                    ).value
-                )
-
-        }
-
-    ];
-
-
-    let report = "";
-
-
-    for (
-        const segment of segments
-    ) {
-
-
-        let result;
-
-
-        if (
-            segment.mode ===
-            "flight"
-        ) {
-
-            result =
-                flightModel(
-                    vehicle,
-                    segment.velocity
-                );
-
-        }
-
-        else if (
-            segment.mode ===
-            "surface"
-        ) {
-
-            result =
-                surfaceModel(
-                    vehicle,
-                    segment.velocity
-                );
-
-        }
-
-        else {
-
-            result =
-                underwaterModel(
-                    vehicle,
-                    segment.velocity
-                );
-
-        }
-
-
-        const energy =
-            result.power *
-            segment.time;
-
-
-        const distance =
-            segment.velocity *
-            3.6 *
-            segment.time;
-
-
-        remaining -= energy;
-
-        totalEnergy += energy;
-
-        totalDistance += distance;
-
-
-        report += `
-
-            <p>
-
-            <strong>
-            ${segment.name}
-            </strong>
-
-            <br>
-
-            Power:
-            ${result.power.toFixed(3)}
-            kW
-
-            <br>
-
-            Energy:
-            ${energy.toFixed(3)}
-            kWh
-
-            <br>
-
-            Distance:
-            ${distance.toFixed(2)}
-            km
-
-            <br>
-
-            Remaining:
-            ${remaining.toFixed(3)}
-            kWh
-
-            </p>
-
-        `;
-
-    }
-
-
-    document.getElementById(
-        "missionDistance"
-    ).textContent =
-        totalDistance.toFixed(2);
-
-
-    document.getElementById(
-        "missionEnergy"
-    ).textContent =
-        totalEnergy.toFixed(2);
-
-
-    document.getElementById(
-        "remainingEnergy"
-    ).textContent =
-        remaining.toFixed(2);
-
-
-    document.getElementById(
-        "missionReport"
-    ).innerHTML = `
-
-        ${report}
-
-        <hr>
-
-        <strong>
-        Total Distance:
-        ${totalDistance.toFixed(2)}
-        km
-        </strong>
-
-        <br>
-
-        <strong>
-        Total Energy:
-        ${totalEnergy.toFixed(2)}
-        kWh
-        </strong>
-
-        <br>
-
-        <strong>
-        Remaining Energy:
-        ${remaining.toFixed(2)}
-        kWh
-        </strong>
-
-    `;
-
-}
-
-
-// ============================================================
-// CSV EXPORT
-// ============================================================
-
-function downloadCSV() {
-
-
-    if (
-        simulationData.length === 0
-    ) {
-
-        alert(
-            "Run the simulation first."
-        );
-
-        return;
-
-    }
-
-
-    const headers = [
-
-        "Velocity",
-
-        "Flight Power",
-
-        "Surface Power",
-
-        "Underwater Power",
-
-        "Flight Drag",
-
-        "Surface Drag",
-
-        "Underwater Drag",
-
-        "Flight Endurance",
-
-        "Surface Endurance",
-
-        "Underwater Endurance",
-
-        "Flight Range",
-
-        "Surface Range",
-
-        "Underwater Range"
-
-    ];
-
-
-    let csv =
-        headers.join(",") +
-        "\n";
-
-
-    simulationData.forEach(
-        row => {
-
-            csv += [
-
-                row.velocity,
-
-                row.flightPower,
-
-                row.surfacePower,
-
-                row.underwaterPower,
-
-                row.flightDrag,
-
-                row.surfaceDrag,
-
-                row.underwaterDrag,
-
-                row.flightEndurance,
-
-                row.surfaceEndurance,
-
-                row.underwaterEndurance,
-
-                row.flightRange,
-
-                row.surfaceRange,
-
-                row.underwaterRange
-
-            ].join(",") +
-            "\n";
-
-        }
-    );
-
-
-    const blob =
-        new Blob(
-            [csv],
-            {
-                type:
-                    "text/csv"
+        scales:{
+          x:{
+            display:false
+          },
+
+          y:{
+            ticks:{
+              color:"#8797b3",
+              font:{
+                size:9
+              }
+            },
+
+            grid:{
+              color:"#1b2940"
             }
-        );
+          }
+        }
+      }
+    }
+  );
+
+}
 
 
-    const url =
-        URL.createObjectURL(
-            blob
-        );
+const powerChart=
+  makeChart(
+    "powerChart",
+    "Power",
+    powerData
+  );
+
+const forceChart=
+  makeChart(
+    "forceChart",
+    "Drag",
+    forceData
+  );
+
+const thermalChart=
+  makeChart(
+    "thermalChart",
+    "Temperature",
+    thermalData
+  );
 
 
-    const a =
-        document.createElement(
-            "a"
-        );
+function pushChart(
+  power,
+  force,
+  temperature
+){
+
+  if(
+    chartLabels.length>80
+  ){
+
+    chartLabels.shift();
+
+    powerData.shift();
+
+    forceData.shift();
+
+    thermalData.shift();
+
+  }
+
+  chartLabels.push(
+    simTime.toFixed(1)
+  );
+
+  powerData.push(
+    power
+  );
+
+  forceData.push(
+    force
+  );
+
+  thermalData.push(
+    temperature
+  );
 
 
-    a.href = url;
+  powerChart.update("none");
 
-    a.download =
-        "ANOAP_simulation.csv";
+  forceChart.update("none");
 
-    a.click();
+  thermalChart.update("none");
+
+}
 
 
-    URL.revokeObjectURL(
-        url
+/* =========================================================
+   LOGGING
+========================================================= */
+
+function log(message){
+
+  const logPanel=
+    document.querySelector(
+      ".log"
     );
 
-}
+  if(
+    !logPanel
+  ){
 
+    createLogPanel();
 
-// ============================================================
-// ENGINEERING REPORT
-// ============================================================
+  }
 
-function downloadReport() {
-
-
-    const vehicle =
-        getVehicle();
-
-
-    const report = `
-
-ANOAP ENGINEERING SIMULATION REPORT
-====================================
-
-AUTONOMOUS OCEAN-AEROSPACE PLATFORM
-
-
-VEHICLE PARAMETERS
-------------------
-
-Mass:
-${vehicle.mass} kg
-
-Length:
-${vehicle.length} m
-
-Width:
-${vehicle.width} m
-
-Height:
-${vehicle.height} m
-
-Wing Area:
-${vehicle.wingArea} m²
-
-Air Drag Coefficient:
-${vehicle.cdAir}
-
-Surface Drag Coefficient:
-${vehicle.cdSurface}
-
-Underwater Drag Coefficient:
-${vehicle.cdWater}
-
-Displacement:
-${vehicle.volume} m³
-
-Battery:
-${vehicle.battery} kWh
-
-
-PHYSICAL CONSTANTS
-------------------
-
-Air Density:
-${AIR_DENSITY} kg/m³
-
-Seawater Density:
-${WATER_DENSITY} kg/m³
-
-Gravity:
-${G} m/s²
-
-
-BASIC RESULTS
--------------
-
-Weight:
-${weight(vehicle).toFixed(3)} N
-
-Buoyancy:
-${buoyancy(vehicle).toFixed(3)} N
-
-
-MODEL EQUATIONS
----------------
-
-Weight:
-
-W = m × g
-
-
-Buoyancy:
-
-Fb = rho × g × V
-
-
-Drag:
-
-D = 0.5 × rho × V² × Cd × A
-
-
-Lift:
-
-L = 0.5 × rho × V² × S × Cl
-
-
-Mechanical Power:
-
-P = D × V
-
-
-Electrical Power:
-
-P_electric =
-P_mechanical / efficiency
-
-
-END
-`;
-
-
-    const blob =
-        new Blob(
-            [report],
-            {
-                type:
-                    "text/plain"
-            }
-        );
-
-
-    const url =
-        URL.createObjectURL(
-            blob
-        );
-
-
-    const a =
-        document.createElement(
-            "a"
-        );
-
-
-    a.href = url;
-
-    a.download =
-        "ANOAP_engineering_report.txt";
-
-    a.click();
-
-
-    URL.revokeObjectURL(
-        url
+  const div=
+    document.createElement(
+      "div"
     );
 
+  div.textContent=
+    "["+
+    new Date()
+      .toLocaleTimeString()+
+    "] "+
+    message;
+
+  document.getElementById(
+    "logContainer"
+  ).prepend(div);
+
 }
 
 
-// ============================================================
-// RESET
-// ============================================================
+function createLogPanel(){
 
-function resetVehicle() {
+  const panel=
+    document.createElement(
+      "div"
+    );
 
-    location.reload();
+  panel.className=
+    "panel";
+
+  panel.innerHTML=`
+
+    <h2>Simulation Log</h2>
+
+    <div
+      id="logContainer"
+      class="log">
+    </div>
+
+  `;
+
+  document.querySelector(
+    ".rightbar"
+  ).appendChild(panel);
 
 }
 
 
-// ============================================================
-// INITIAL RUN
-// ============================================================
+/* =========================================================
+   HELPERS
+========================================================= */
 
-window.onload =
-    function () {
+function text(
+  id,
+  value
+){
 
-        runSimulation();
+  const el=
+    document.getElementById(
+      id
+    );
 
-    };
+  if(el)
+    el.textContent=value;
 
+}
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+function resize(){
+
+  const w=
+    canvas.clientWidth;
+
+  const h=
+    canvas.clientHeight;
+
+  camera.aspect=
+    w/h;
+
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(
+    w,
+    h,
+    false
+  );
+
+}
+
+window.addEventListener(
+  "resize",
+  resize
+);
+
+
+/* =========================================================
+   RENDER LOOP
+========================================================= */
+
+let lastTime=
+  performance.now();
+
+
+function animate(now){
+
+  requestAnimationFrame(
+    animate
+  );
+
+  const dt=
+    Math.min(
+      .05,
+      (now-lastTime)/1000
+    );
+
+  lastTime=now;
+
+  tick(dt);
+
+  controls.update();
+
+  renderer.render(
+    scene,
+    camera
+  );
+
+}
+
+
+createLogPanel();
+
+setMode("air");
+
+resize();
+
+log(
+  "ANOAP V2 initialized."
+);
+
+log(
+  "3D multidomain environment online."
+);
+
+log(
+  "Engineering models are simplified research models."
+);
+
+requestAnimationFrame(
+  animate
+);
 
 </script>
 
 </body>
-
 </html>
